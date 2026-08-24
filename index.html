@@ -252,6 +252,9 @@
 
         <!-- Map Container -->
         <div id="map-container">
+            <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+                <h4><i class="fas fa-cog fa-spin"></i> Loading map...</h4>
+            </div>
             <div id="map"></div>
             <div class="map-controls">
                 <div class="basemap-selector">
@@ -260,11 +263,11 @@
                     </button>
                     <div class="basemap-options" id="basemapOptions">
                         <div class="basemap-option" onclick="changeBasemap('osm')">
-                            <img src="https://via.placeholder.com/42x42/9ee09e/000000?text=OSM" class="basemap-thumb" alt="OpenStreetMap">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQyIiBoZWlnaHQ9IjQyIiBmaWxsPSIjOWVlMGdlIi8+Cjx0ZXh0IHg9IjIxIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+T1NNPC90ZXh0Pgo8L3N2Zz4K" class="basemap-thumb" alt="OpenStreetMap">
                             <span>OpenStreetMap</span>
                         </div>
                         <div class="basemap-option" onclick="changeBasemap('satellite')">
-                            <img src="https://via.placeholder.com/42x42/4a90e2/ffffff?text=Sat" class="basemap-thumb" alt="Satellite">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQyIiBoZWlnaHQ9IjQyIiBmaWxsPSIjNGE5MGUyIi8+Cjx0ZXh0IHg9IjIxIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+U2F0PC90ZXh0Pgo8L3N2Zz4K" class="basemap-thumb" alt="Satellite">
                             <span>Satellite</span>
                         </div>
                     </div>
@@ -273,10 +276,7 @@
         </div>
     </div>
 
-    <!-- Loader -->
-    <div class="fa-3x" id="loader" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-        <h4><i class="fas fa-cog fa-spin"></i> Loading map...</h4>
-    </div>
+
 
     <!-- Info Modal -->
     <div class="modal fade" id="info-modal" role="dialog">
