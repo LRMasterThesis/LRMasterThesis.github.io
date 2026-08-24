@@ -122,6 +122,12 @@
             right: 10px;
             z-index: 1000;
         }
+        .filter-panel-container {
+            position: absolute;
+            top: 0;
+            right: 52px;
+            z-index: 1000;
+        }
         .basemap-selector {
             position: relative;
             display: inline-block;
@@ -649,6 +655,22 @@
             </div>
             <div id="map"></div>
             <div class="map-controls">
+                <div class="basemap-selector">
+                    <button class="control-btn" onclick="toggleBasemapSelector()" title="Change Basemap">
+                        <i class="fas fa-map"></i>
+                    </button>
+                    <div class="basemap-options" id="basemapOptions">
+                        <div class="basemap-option" onclick="changeBasemap('osm')">
+                            <img src="images/Thumbnails/OSM Kenya Layer Thumbnail.png" class="basemap-thumb" alt="OpenStreetMap">
+                            <span>OpenStreetMap</span>
+                        </div>
+                        <div class="basemap-option" onclick="changeBasemap('satellite')">
+                            <img src="images/Thumbnails/Satellite Kenya Layer Thumbnail.png" class="basemap-thumb" alt="Satellite">
+                            <span>Satellite</span>
+                        </div>
+                    </div>
+                </div>
+                                </div>
                 <div class="filter-panel-container">
                     <div class="filter-panel closed" id="filterPanel">
                         <div class="filter-content">
@@ -698,21 +720,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="basemap-selector">
-                    <button class="control-btn" onclick="toggleBasemapSelector()" title="Change Basemap">
-                        <i class="fas fa-map"></i>
-                    </button>
-                    <div class="basemap-options" id="basemapOptions">
-                        <div class="basemap-option" onclick="changeBasemap('osm')">
-                            <img src="images/Thumbnails/OSM Kenya Layer Thumbnail.png" class="basemap-thumb" alt="OpenStreetMap">
-                            <span>OpenStreetMap</span>
-                        </div>
-                        <div class="basemap-option" onclick="changeBasemap('satellite')">
-                            <img src="images/Thumbnails/Satellite Kenya Layer Thumbnail.png" class="basemap-thumb" alt="Satellite">
-                            <span>Satellite</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -733,6 +740,56 @@
                     <hr>
                     <h5><b>Map layers</b></h5>
                     <p>Describe your map layers here.</p>
+                </div>
+                                </div>
+                <div class="filter-panel-container">
+                    <div class="filter-panel closed" id="filterPanel">
+                        <div class="filter-content">
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 1</label>
+                                <div class="dual-slider" id="slider1">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range1"></div>
+                                    <div class="dual-slider-thumb" id="min1" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max1" style="left: 80%"></div>
+                                </div>
+                            </div>
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 2</label>
+                                <div class="dual-slider" id="slider2">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range2"></div>
+                                    <div class="dual-slider-thumb" id="min2" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max2" style="left: 80%"></div>
+                                </div>
+                            </div>
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 3</label>
+                                <div class="dual-slider" id="slider3">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range3"></div>
+                                    <div class="dual-slider-thumb" id="min3" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max3" style="left: 80%"></div>
+                                </div>
+                            </div>
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 4</label>
+                                <div class="dual-slider" id="slider4">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range4"></div>
+                                    <div class="dual-slider-thumb" id="min4" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max4" style="left: 80%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filter-header" onclick="toggleFilterPanel()">
+                            <div class="filter-toggle">
+                                <i class="fas fa-chevron-up filter-arrow" id="leftArrow"></i>
+                                <span id="filterText">Filters</span>
+                                <i class="fas fa-chevron-up filter-arrow" id="rightArrow"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
