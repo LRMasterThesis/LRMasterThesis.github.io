@@ -194,6 +194,105 @@
         .close {
             color: white;
         }
+
+        /* Filter Panel Styles */
+        .filter-panel {
+            position: absolute;
+            top: 10px;
+            right: 190px; /* Position left of basemap selector (42px + 10px + 130px) */
+            width: 180px;
+            background: rgba(7, 24, 7, 0.6);
+            border-radius: 4px;
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+            transform: translateY(-140px);
+            overflow: hidden;
+        }
+        .filter-panel.closed {
+            transform: translateY(-120px);
+        }
+        .filter-header {
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 0.9em;
+            position: relative;
+            background: transparent;
+        }
+        .filter-header:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-arrow {
+            color: white;
+            font-size: 0.8em;
+        }
+        .filter-content {
+            padding: 10px;
+            padding-top: 0;
+        }
+        .filter-slider-container {
+            margin-bottom: 15px;
+        }
+        .filter-slider-label {
+            color: white;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .filter-slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: #444;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .filter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+        .filter-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: none;
+        }
+        .filter-row {
+            display: flex;
+            gap: 5px;
+        }
+        .filter-row .filter-slider-container {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .filter-row .filter-slider-label {
+            font-size: 0.75em;
+        }
+
+        /* Wider basemap options */
+        .basemap-options {
+            width: 220px;
+        }
+        .basemap-option {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 
@@ -250,6 +349,71 @@
             </div>
             <div id="map"></div>
             <div class="map-controls">
+            
+            <div class="filter-panel" id="filterPanel">
+                <div class="filter-header" onclick="toggleFilterPanel()">
+                    <div class="filter-toggle" id="filterToggle">
+                        <i class="fas fa-chevron-up filter-arrow" id="leftArrow"></i>
+                        <span id="filterText">Filters</span>
+                        <i class="fas fa-chevron-up filter-arrow" id="rightArrow"></i>
+                    </div>
+                </div>
+                <div class="filter-content">
+                    <div class="filter-slider-container">
+                        <label class="filter-slider-label">Parameter 1</label>
+                        <div class="filter-row">
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Min</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param1Min">
+                            </div>
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Max</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param1Max">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-slider-container">
+                        <label class="filter-slider-label">Parameter 2</label>
+                        <div class="filter-row">
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Min</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param2Min">
+                            </div>
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Max</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param2Max">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-slider-container">
+                        <label class="filter-slider-label">Parameter 3</label>
+                        <div class="filter-row">
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Min</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param3Min">
+                            </div>
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Max</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param3Max">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-slider-container">
+                        <label class="filter-slider-label">Parameter 4</label>
+                        <div class="filter-row">
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Min</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param4Min">
+                            </div>
+                            <div class="filter-slider-container">
+                                <label class="filter-slider-label">Max</label>
+                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param4Max">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
                 <div class="basemap-selector">
                     <button class="control-btn" onclick="toggleBasemapSelector()" title="Change Basemap">
                         <i class="fas fa-map"></i>
@@ -357,6 +521,26 @@
                 options.classList.remove('show');
             }
         });
+
+        // Filter panel functions
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filterPanel');
+            const text = document.getElementById('filterText');
+            const leftArrow = document.getElementById('leftArrow');
+            const rightArrow = document.getElementById('rightArrow');
+            
+            if (panel.classList.contains('closed')) {
+                panel.classList.remove('closed');
+                text.textContent = 'Close Filters';
+                leftArrow.className = 'fas fa-chevron-down filter-arrow';
+                rightArrow.className = 'fas fa-chevron-down filter-arrow';
+            } else {
+                panel.classList.add('closed');
+                text.textContent = 'Filters';
+                leftArrow.className = 'fas fa-chevron-up filter-arrow';
+                rightArrow.className = 'fas fa-chevron-up filter-arrow';
+            }
+        }
     </script>
 </body>
 </html>
