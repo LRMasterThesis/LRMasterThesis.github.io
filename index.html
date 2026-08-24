@@ -649,71 +649,55 @@
             </div>
             <div id="map"></div>
             <div class="map-controls">
-            
-            <div class="filter-panel" id="filterPanel">
-                <div class="filter-header" onclick="toggleFilterPanel()">
-                    <div class="filter-toggle" id="filterToggle">
-                        <i class="fas fa-chevron-up filter-arrow" id="leftArrow"></i>
-                        <span id="filterText">Filters</span>
-                        <i class="fas fa-chevron-up filter-arrow" id="rightArrow"></i>
-                    </div>
-                </div>
-                <div class="filter-content">
-                    <div class="filter-slider-container">
-                        <label class="filter-slider-label">Parameter 1</label>
-                        <div class="filter-row">
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Min</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param1Min">
+                <div class="filter-panel-container">
+                    <div class="filter-panel closed" id="filterPanel">
+                        <div class="filter-content">
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 1</label>
+                                <div class="dual-slider" id="slider1">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range1"></div>
+                                    <div class="dual-slider-thumb" id="min1" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max1" style="left: 80%"></div>
+                                </div>
                             </div>
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Max</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param1Max">
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 2</label>
+                                <div class="dual-slider" id="slider2">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range2"></div>
+                                    <div class="dual-slider-thumb" id="min2" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max2" style="left: 80%"></div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="filter-slider-container">
-                        <label class="filter-slider-label">Parameter 2</label>
-                        <div class="filter-row">
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Min</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param2Min">
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 3</label>
+                                <div class="dual-slider" id="slider3">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range3"></div>
+                                    <div class="dual-slider-thumb" id="min3" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max3" style="left: 80%"></div>
+                                </div>
                             </div>
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Max</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param2Max">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="filter-slider-container">
-                        <label class="filter-slider-label">Parameter 3</label>
-                        <div class="filter-row">
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Min</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param3Min">
-                            </div>
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Max</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param3Max">
+                            <div class="filter-slider-wrapper">
+                                <label class="filter-slider-label">Parameter 4</label>
+                                <div class="dual-slider" id="slider4">
+                                    <div class="dual-slider-track"></div>
+                                    <div class="dual-slider-range" id="range4"></div>
+                                    <div class="dual-slider-thumb" id="min4" style="left: 20%"></div>
+                                    <div class="dual-slider-thumb" id="max4" style="left: 80%"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="filter-slider-container">
-                        <label class="filter-slider-label">Parameter 4</label>
-                        <div class="filter-row">
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Min</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="0" id="param4Min">
-                            </div>
-                            <div class="filter-slider-container">
-                                <label class="filter-slider-label">Max</label>
-                                <input type="range" class="filter-slider" min="0" max="100" value="100" id="param4Max">
+                        <div class="filter-header" onclick="toggleFilterPanel()">
+                            <div class="filter-toggle">
+                                <i class="fas fa-chevron-up filter-arrow" id="leftArrow"></i>
+                                <span id="filterText">Filters</span>
+                                <i class="fas fa-chevron-up filter-arrow" id="rightArrow"></i>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
                 <div class="basemap-selector">
                     <button class="control-btn" onclick="toggleBasemapSelector()" title="Change Basemap">
                         <i class="fas fa-map"></i>
