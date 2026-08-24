@@ -83,25 +83,26 @@
             padding: 10px;
             box-sizing: border-box;
         }
+        /* CSS Grid layout for charts */
+        #sidebar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            auto-rows: 120px;
+        }
         .chart-placeholder {
             background-color: #2a4a2a;
             border: 1px solid var(--light-grey);
-            height: 120px;
-            margin-bottom: 10px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #adb5bd;
-            border-radius: 4px;
             font-size: 0.9em;
         }
-        .chart-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .chart-row .chart-placeholder {
-            flex: 1;
+        /* Full-width charts (span both columns) */
+        .chart-placeholder.full-width {
+            grid-column: span 2;
         }
 
         /* Map container (67% width) */
@@ -228,26 +229,18 @@
     <div id="main-container">
         <!-- Left Sidebar with Placeholders -->
         <div id="sidebar">
-            <div class="chart-placeholder">Apprehensions by Date</div>
-            <div class="chart-placeholder">Apprehensions by Month</div>
-            <div class="chart-row">
-                <div class="chart-placeholder">Apprehensions by Origin</div>
-                <div class="chart-placeholder">Apprehensions by Destination</div>
-            </div>
-            <div class="chart-row">
-                <div class="chart-placeholder">Apprehensions by Route</div>
-                <div class="chart-placeholder">Apprehensions by Border</div>
-            </div>
-            <div class="chart-row">
-                <div class="chart-placeholder">Apprehensions by Demographic</div>
-                <div class="chart-placeholder">Apprehensions by Age</div>
-            </div>
-            <div class="chart-placeholder">Fatalities by Date</div>
-            <div class="chart-placeholder">Fatalities by Month</div>
-            <div class="chart-row">
-                <div class="chart-placeholder">Fatalities by Region</div>
-                <div class="chart-placeholder">Fatalities by Event Type</div>
-            </div>
+            <div class="chart-placeholder full-width">Apprehensions by Date</div>
+            <div class="chart-placeholder full-width">Apprehensions by Month</div>
+            <div class="chart-placeholder">Apprehensions by Origin</div>
+            <div class="chart-placeholder">Apprehensions by Destination</div>
+            <div class="chart-placeholder">Apprehensions by Route</div>
+            <div class="chart-placeholder">Apprehensions by Border</div>
+            <div class="chart-placeholder">Apprehensions by Demographic</div>
+            <div class="chart-placeholder">Apprehensions by Age</div>
+            <div class="chart-placeholder full-width">Fatalities by Date</div>
+            <div class="chart-placeholder full-width">Fatalities by Month</div>
+            <div class="chart-placeholder">Fatalities by Region</div>
+            <div class="chart-placeholder">Fatalities by Event Type</div>
         </div>
 
         <!-- Map Container -->
@@ -263,11 +256,11 @@
                     </button>
                     <div class="basemap-options" id="basemapOptions">
                         <div class="basemap-option" onclick="changeBasemap('osm')">
-                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQyIiBoZWlnaHQ9IjQyIiBmaWxsPSIjOWVlMGdlIi8+Cjx0ZXh0IHg9IjIxIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+T1NNPC90ZXh0Pgo8L3N2Zz4K" class="basemap-thumb" alt="OpenStreetMap">
+                            <img src="images/Thumbnails/OSM Kenya Layer Thumbnail.png" class="basemap-thumb" alt="OpenStreetMap">
                             <span>OpenStreetMap</span>
                         </div>
                         <div class="basemap-option" onclick="changeBasemap('satellite')">
-                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQyIiBoZWlnaHQ9IjQyIiBmaWxsPSIjNGE5MGUyIi8+Cjx0ZXh0IHg9IjIxIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+U2F0PC90ZXh0Pgo8L3N2Zz4K" class="basemap-thumb" alt="Satellite">
+                            <img src="images/Thumbnails/Satellite Kenya Layer Thumbnail.png" class="basemap-thumb" alt="Satellite">
                             <span>Satellite</span>
                         </div>
                     </div>
