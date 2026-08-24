@@ -195,21 +195,89 @@
             color: white;
         }
 
-        /* Filter Panel Styles */
-        .filter-panel {
+
+
+
+        /* Wider basemap options */
+        .basemap-options {
             position: absolute;
-            top: 10px;
-            right: 190px; /* Position left of basemap selector (42px + 10px + 130px) */
-            width: 180px;
+            left: -230px;
+            top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--light-grey);
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 220px;
+            display: none;
+        }
+        .basemap-options.show {
+            display: block;
+        }
+        .basemap-option {
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        /* Basemap selector - opens to the left */
+        .basemap-selector {
+            position: relative;
+            display: inline-block;
+        }
+        .basemap-options {
+            position: absolute;
+            left: -230px;
+            top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--light-grey);
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 220px;
+            display: none;
+        }
+        .basemap-options.show {
+            display: block;
+        }
+        .basemap-option {
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .basemap-option:hover {
+            background: #f5f5f5;
+        }
+
+        /* Filter Panel Styles */
+        .filter-panel-container {
+            position: absolute;
+            top: 0;
+            right: 52px; /* Position left of basemap button (42px + 10px) */
+            z-index: 1000;
+        }
+        .filter-panel {
+            width: 200px;
             background: rgba(7, 24, 7, 0.6);
             border-radius: 4px;
-            z-index: 1000;
-            transition: transform 0.3s ease-in-out;
-            transform: translateY(-140px);
             overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            transform: translateY(0);
         }
         .filter-panel.closed {
-            transform: translateY(-120px);
+            transform: translateY(-170px);
         }
         .filter-header {
             height: 30px;
@@ -219,8 +287,8 @@
             cursor: pointer;
             color: white;
             font-size: 0.9em;
-            position: relative;
             background: transparent;
+            padding: 0 10px;
         }
         .filter-header:hover {
             background: rgba(255, 255, 255, 0.1);
@@ -229,17 +297,29 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            width: 100%;
+            justify-content: center;
         }
         .filter-arrow {
             color: white;
             font-size: 0.8em;
+            transition: transform 0.3s ease-in-out;
+        }
+        .filter-arrow.up {
+            transform: rotate(0deg);
+        }
+        .filter-arrow.down {
+            transform: rotate(180deg);
         }
         .filter-content {
             padding: 10px;
             padding-top: 0;
         }
-        .filter-slider-container {
+        /* Dual-handle slider styles */
+        .filter-slider-wrapper {
             margin-bottom: 15px;
+            position: relative;
+            height: 30px;
         }
         .filter-slider-label {
             color: white;
@@ -247,51 +327,40 @@
             margin-bottom: 5px;
             display: block;
         }
-        .filter-slider {
+        .dual-slider {
+            position: relative;
             width: 100%;
             height: 4px;
-            border-radius: 2px;
             background: #444;
+            border-radius: 2px;
             outline: none;
-            -webkit-appearance: none;
         }
-        .filter-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
+        .dual-slider-track {
+            position: absolute;
+            height: 4px;
+            background: #444;
+            border-radius: 2px;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .dual-slider-range {
+            position: absolute;
+            height: 4px;
+            background: #666;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        .dual-slider-thumb {
+            position: absolute;
             width: 14px;
             height: 14px;
             border-radius: 50%;
             background: white;
             cursor: pointer;
-        }
-        .filter-slider::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-            border: none;
-        }
-        .filter-row {
-            display: flex;
-            gap: 5px;
-        }
-        .filter-row .filter-slider-container {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        .filter-row .filter-slider-label {
-            font-size: 0.75em;
-        }
-
-        /* Wider basemap options */
-        .basemap-options {
-            width: 220px;
-        }
-        .basemap-option {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
         }
     </style>
 </head>
@@ -522,7 +591,7 @@
             }
         });
 
-        // Filter panel functions
+        // Filter panel toggle
         function toggleFilterPanel() {
             const panel = document.getElementById('filterPanel');
             const text = document.getElementById('filterText');
@@ -532,15 +601,84 @@
             if (panel.classList.contains('closed')) {
                 panel.classList.remove('closed');
                 text.textContent = 'Close Filters';
-                leftArrow.className = 'fas fa-chevron-down filter-arrow';
-                rightArrow.className = 'fas fa-chevron-down filter-arrow';
+                leftArrow.classList.remove('up');
+                leftArrow.classList.add('down');
+                rightArrow.classList.remove('up');
+                rightArrow.classList.add('down');
             } else {
                 panel.classList.add('closed');
                 text.textContent = 'Filters';
-                leftArrow.className = 'fas fa-chevron-up filter-arrow';
-                rightArrow.className = 'fas fa-chevron-up filter-arrow';
+                leftArrow.classList.remove('down');
+                leftArrow.classList.add('up');
+                rightArrow.classList.remove('down');
+                rightArrow.classList.add('up');
             }
         }
+
+        // Dual slider functionality
+        function initDualSlider(sliderId, minId, maxId, rangeId) {
+            const slider = document.getElementById(sliderId);
+            const minThumb = document.getElementById(minId);
+            const maxThumb = document.getElementById(maxId);
+            const range = document.getElementById(rangeId);
+            
+            let minVal = 0;
+            let maxVal = 100;
+            let minPercent = 0;
+            let maxPercent = 100;
+            let isMinDragging = false;
+            let isMaxDragging = false;
+
+            function updateRange() {
+                if (maxPercent < minPercent) {
+                    [minPercent, maxPercent] = [maxPercent, minPercent];
+                    [minThumb.style.left, maxThumb.style.left] = [maxThumb.style.left, minThumb.style.left];
+                }
+                range.style.left = minPercent + '%';
+                range.style.width = (maxPercent - minPercent) + '%';
+            }
+
+            minThumb.addEventListener('mousedown', (e) => {
+                isMinDragging = true;
+                e.preventDefault();
+            });
+            maxThumb.addEventListener('mousedown', (e) => {
+                isMaxDragging = true;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isMinDragging && !isMaxDragging) return;
+                
+                const rect = slider.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+
+                if (isMinDragging) {
+                    minPercent = percent;
+                    minThumb.style.left = percent + '%';
+                    updateRange();
+                }
+                if (isMaxDragging) {
+                    maxPercent = percent;
+                    maxThumb.style.left = percent + '%';
+                    updateRange();
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isMinDragging = false;
+                isMaxDragging = false;
+            });
+        }
+
+        // Initialize all dual sliders when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initDualSlider('slider1', 'min1', 'max1', 'range1');
+            initDualSlider('slider2', 'min2', 'max2', 'range2');
+            initDualSlider('slider3', 'min3', 'max3', 'range3');
+            initDualSlider('slider4', 'min4', 'max4', 'range4');
+        });
     </script>
 </body>
 </html>
