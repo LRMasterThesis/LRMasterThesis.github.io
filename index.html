@@ -380,6 +380,8 @@
 
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Hide loader
+            document.getElementById('loader').style.display = 'none';
 
             // Initialize Leaflet map centered at 0.47°, 37.72° at zoom level 7
             map = L.map('map', {
@@ -401,16 +403,6 @@
             document.getElementById('chkAridity').checked = false;
             document.getElementById('chkCropland').checked = false;
             document.getElementById('chkRivers').checked = true;
-
-            // Load Rivers as default layer
-            try {
-                await addRiversLayer();
-            } catch (error) {
-                console.error('Could not load default Rivers layer:', error);
-            }
-
-            // Hide loader only after map/layers are initialized
-            document.getElementById('loader').style.display = 'none';
         });
 
         // Zoom functions
@@ -574,15 +566,15 @@
 
         // Load GeoJSON Rivers layer
         async function addRiversLayer() {
-            if (dataLayerRivers) return;
+            if (dataLayerRivers) return; // already added
             try {
                 console.log('Starting to load Rivers layer...');
                 const response = await fetch('Data/Rivers.geojson');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
                 const geojsonData = await response.json();
                 console.log('GeoJSON parsed successfully');
+                
                 dataLayerRivers = L.geoJSON(geojsonData, {
                     style: {
                         color: '#2b8cbe',
@@ -592,24 +584,22 @@
                     onEachFeature: function(feature, layer) {
                         if (feature.properties) {
                             let popupContent = '<div>';
-
                             for (let key in feature.properties) {
-                                popupContent +=
-                                    `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
+                                popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
                             }
                             popupContent += '</div>';
                             layer.bindPopup(popupContent);
                         }
                     }
                 }).addTo(map);
+                
                 console.log('Rivers layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Rivers layer:', error);
                 document.getElementById('chkRivers').checked = false;
-                throw error;
-                }    
-         }
-
+                alert('Failed to load Rivers layer: ' + error.message);
+            }
+        }
 
         function removeRiversLayer() {
             if (!dataLayerRivers) return;
