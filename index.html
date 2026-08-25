@@ -146,7 +146,7 @@
         /* Filter Panel Styles - single, consistent definition */
         .filter-panel-container {
             position: absolute;
-            top: 12.5vh;    /* places the container directly under the top bar */
+            top: 0vh;    /* places the container directly under the top bar */
             right: 62px;
             z-index: 1180;  /* above map but under top-bar */
         }
@@ -176,7 +176,7 @@
         .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block;}
 
         /* rotate arrows when panel is closed) */
-        .filter-panel: not(.closed).filter-arrow { transform: rotate(180deg); }
+        .filter-panel:not(.closed).filter-arrow { transform: rotate(180deg); }
 
         .filter-content { padding:10px; }
 
