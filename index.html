@@ -574,15 +574,15 @@
 
         // Load GeoJSON Rivers layer
         async function addRiversLayer() {
-            if (dataLayerRivers) return; // already added
+            if (dataLayerRivers) return;
             try {
                 console.log('Starting to load Rivers layer...');
                 const response = await fetch('Data/Rivers.geojson');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const geojsonData = await response.json();
                 console.log('GeoJSON parsed successfully');
-                
                 dataLayerRivers = L.geoJSON(geojsonData, {
                     style: {
                         color: '#2b8cbe',
@@ -592,22 +592,24 @@
                     onEachFeature: function(feature, layer) {
                         if (feature.properties) {
                             let popupContent = '<div>';
+
                             for (let key in feature.properties) {
-                                popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
+                                popupContent +=
+                                    `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
                             }
                             popupContent += '</div>';
                             layer.bindPopup(popupContent);
                         }
                     }
                 }).addTo(map);
-                
                 console.log('Rivers layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Rivers layer:', error);
                 document.getElementById('chkRivers').checked = false;
-                alert('Failed to load Rivers layer: ' + error.message);
-            }
-        }
+                throw error;
+                }    
+         }
+
 
         function removeRiversLayer() {
             if (!dataLayerRivers) return;
