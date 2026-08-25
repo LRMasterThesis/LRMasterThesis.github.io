@@ -273,16 +273,16 @@
                         <i class="fas fa-layer-group"></i>
                     </button>
                     <div class="data-options" id="dataOptions">
-                        <label class="data-option" onclick="toggleDataLayer('aridity', event)">
-                            <input type="checkbox" id="chkAridity">
+                        <label class="data-option">
+                            <input type="checkbox" id="chkAridity" onchange="toggleDataLayer('aridity')">
                             <span>Aridity Index</span>
                         </label>
-                        <label class="data-option" onclick="toggleDataLayer('cropland', event)">
-                            <input type="checkbox" id="chkCropland">
+                        <label class="data-option">
+                            <input type="checkbox" id="chkCropland" onchange="toggleDataLayer('cropland')">
                             <span>Cropland</span>
                         </label>
-                        <label class="data-option" onclick="toggleDataLayer('rivers', event)">
-                            <input type="checkbox" id="chkRivers">
+                        <label class="data-option">
+                            <input type="checkbox" id="chkRivers" onchange="toggleDataLayer('rivers')">
                             <span>Rivers</span>
                         </label>
                     </div>
@@ -437,25 +437,17 @@
             document.getElementById('basemapOptions').classList.remove('show');
         }
 
-        // When the user clicks a data option label we receive the id and the click event so we can stop the
-        // checkbox from immediately toggling twice (label + explicit checkbox click). We manage checkbox state inside.
-        function toggleDataLayer(id, evt) {
-            if (evt) evt.stopPropagation();
+        // Toggle data layers based on checkbox state
+        function toggleDataLayer(id) {
             if (id === 'aridity') {
                 const chk = document.getElementById('chkAridity');
-                const willBeChecked = !chk.checked;
-                chk.checked = willBeChecked;
-                if (willBeChecked) addAridityLayer(); else removeAridityLayer();
+                if (chk.checked) addAridityLayer(); else removeAridityLayer();
             } else if (id === 'cropland') {
                 const chk = document.getElementById('chkCropland');
-                const willBeChecked = !chk.checked;
-                chk.checked = willBeChecked;
-                if (willBeChecked) addCroplandLayer(); else removeCroplandLayer();
+                if (chk.checked) addCroplandLayer(); else removeCroplandLayer();
             } else if (id === 'rivers') {
                 const chk = document.getElementById('chkRivers');
-                const willBeChecked = !chk.checked;
-                chk.checked = willBeChecked;
-                if (willBeChecked) addRiversLayer(); else removeRiversLayer();
+                if (chk.checked) addRiversLayer(); else removeRiversLayer();
             }
         }
 
@@ -463,44 +455,55 @@
         async function addAridityLayer() {
             if (dataLayerAridity) return; // already added
             try {
+                console.log('Starting to load Aridity layer...');
                 const response = await fetch('Data/Aridity%20Index.tif');
-                if (!response.ok) throw new Error('Failed to fetch Aridity Index.tif');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
+                console.log('Response received, reading as array buffer...');
                 const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+                
                 const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                console.log('TIFF parsed successfully');
+                
                 const image = await tiff.getImage();
+                console.log(`Image dimensions: ${image.getWidth()} x ${image.getHeight()}`);
+                
                 const rasterData = await image.readRasters();
+                console.log(`Raster data read: ${rasterData.length} bands`);
                 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
                     images: [image],
                     crs: 4326
                 });
+                console.log('GeoRaster created');
 
                 dataLayerAridity = new GeoRasterLayer({
                     georaster: georaster,
-                    opacity: 0.7,
+                    opacity: 0.6,
                     pixelValuesToColorFn: values => {
-                        // Color mapping for aridity index (brown tones for high aridity)
                         const value = values[0];
                         if (value === undefined || value === null) return null;
-                        const normalized = Math.min(1, Math.max(0, value / 100));
-                        const r = Math.floor(200 + normalized * 55);
-                        const g = Math.floor(150 - normalized * 100);
-                        const b = Math.floor(80 - normalized * 80);
-                        return `rgba(${r}, ${g}, ${b}, 0.7)`;
+                        const normalized = Math.min(1, Math.max(0, value / 255));
+                        const r = Math.floor(210 + normalized * 45);
+                        const g = Math.floor(140 - normalized * 90);
+                        const b = Math.floor(70 - normalized * 70);
+                        return `rgba(${r}, ${g}, ${b}, 0.6)`;
                     }
                 }).addTo(map);
                 
-                console.log('Aridity layer loaded successfully');
+                console.log('Aridity layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Aridity layer:', error);
-                alert('Failed to load Aridity layer. Make sure Data/Aridity Index.tif exists.');
+                document.getElementById('chkAridity').checked = false;
+                alert('Failed to load Aridity layer: ' + error.message);
             }
         }
 
         function removeAridityLayer() {
             if (!dataLayerAridity) return;
+            console.log('Removing Aridity layer');
             map.removeLayer(dataLayerAridity);
             dataLayerAridity = null;
         }
@@ -508,44 +511,55 @@
         async function addCroplandLayer() {
             if (dataLayerCropland) return; // already added
             try {
+                console.log('Starting to load Cropland layer...');
                 const response = await fetch('Data/Cropland.tif');
-                if (!response.ok) throw new Error('Failed to fetch Cropland.tif');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
+                console.log('Response received, reading as array buffer...');
                 const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+                
                 const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                console.log('TIFF parsed successfully');
+                
                 const image = await tiff.getImage();
+                console.log(`Image dimensions: ${image.getWidth()} x ${image.getHeight()}`);
+                
                 const rasterData = await image.readRasters();
+                console.log(`Raster data read: ${rasterData.length} bands`);
                 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
                     images: [image],
                     crs: 4326
                 });
+                console.log('GeoRaster created');
 
                 dataLayerCropland = new GeoRasterLayer({
                     georaster: georaster,
-                    opacity: 0.7,
+                    opacity: 0.6,
                     pixelValuesToColorFn: values => {
-                        // Color mapping for cropland (green tones for higher cropland coverage)
                         const value = values[0];
                         if (value === undefined || value === null) return null;
-                        const normalized = Math.min(1, Math.max(0, value / 100));
-                        const r = Math.floor(200 - normalized * 150);
-                        const g = Math.floor(180 + normalized * 75);
-                        const b = Math.floor(100 - normalized * 100);
-                        return `rgba(${r}, ${g}, ${b}, 0.7)`;
+                        const normalized = Math.min(1, Math.max(0, value / 255));
+                        const r = Math.floor(190 - normalized * 140);
+                        const g = Math.floor(170 + normalized * 70);
+                        const b = Math.floor(90 - normalized * 90);
+                        return `rgba(${r}, ${g}, ${b}, 0.6)`;
                     }
                 }).addTo(map);
                 
-                console.log('Cropland layer loaded successfully');
+                console.log('Cropland layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Cropland layer:', error);
-                alert('Failed to load Cropland layer. Make sure Data/Cropland.tif exists.');
+                document.getElementById('chkCropland').checked = false;
+                alert('Failed to load Cropland layer: ' + error.message);
             }
         }
 
         function removeCroplandLayer() {
             if (!dataLayerCropland) return;
+            console.log('Removing Cropland layer');
             map.removeLayer(dataLayerCropland);
             dataLayerCropland = null;
         }
@@ -554,10 +568,12 @@
         async function addRiversLayer() {
             if (dataLayerRivers) return; // already added
             try {
+                console.log('Starting to load Rivers layer...');
                 const response = await fetch('Data/Rivers.geojson');
-                if (!response.ok) throw new Error('Failed to fetch Rivers.geojson');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const geojsonData = await response.json();
+                console.log('GeoJSON parsed successfully');
                 
                 dataLayerRivers = L.geoJSON(geojsonData, {
                     style: {
@@ -577,15 +593,17 @@
                     }
                 }).addTo(map);
                 
-                console.log('Rivers layer loaded successfully');
+                console.log('Rivers layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Rivers layer:', error);
-                alert('Failed to load Rivers layer. Make sure Data/Rivers.geojson exists.');
+                document.getElementById('chkRivers').checked = false;
+                alert('Failed to load Rivers layer: ' + error.message);
             }
         }
 
         function removeRiversLayer() {
             if (!dataLayerRivers) return;
+            console.log('Removing Rivers layer');
             map.removeLayer(dataLayerRivers);
             dataLayerRivers = null;
         }
