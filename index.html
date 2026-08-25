@@ -107,9 +107,9 @@
         #map { height: 100%; width: 100%; }
 
         /* Map controls - Basemap selector */
-        .map-controls { position: absolute; top: 10px; right: 10px; z-index: 1190; }
+        .map-controls { position: absolute; top: 10px; right: 10px; z-index: 1190; display:flex; gap:8px; }
 
-        .basemap-selector { position: relative; display: inline-block; }
+        .basemap-selector, .data-selector { position: relative; display: inline-block; }
         .control-btn {
             width: 42px; height: 42px; display:flex; align-items:center; justify-content:center;
             cursor:pointer; margin:0; padding:0; border:1px solid var(--light-grey);
@@ -117,7 +117,7 @@
         }
         .control-btn:hover { background:#f1f1f1; }
 
-        .basemap-options {
+        .basemap-options, .data-options {
             display: none;
             position: absolute;
             left: -230px;
@@ -131,10 +131,12 @@
             width: 220px;
             white-space: nowrap;
         }
-        .basemap-options.show { display: block; }
-        .basemap-option { padding:8px; cursor:pointer; display:flex; align-items:center; gap:8px; border-radius:3px; font-size:0.9em; }
-        .basemap-option:hover { background:#f5f5f5; }
-        .basemap-thumb { width:42px; height:42px; object-fit:cover; border:1px solid var(--light-grey); border-radius:3px; }
+        .basemap-options.show, .data-options.show { display: block; }
+        .basemap-option, .data-option { padding:8px; cursor:pointer; display:flex; align-items:center; gap:8px; border-radius:3px; font-size:0.9em; }
+        .basemap-option:hover, .data-option:hover { background:#f5f5f5; }
+        .basemap-thumb, .data-thumb { width:42px; height:42px; object-fit:cover; border:1px solid var(--light-grey); border-radius:3px; }
+
+        .data-option input[type="checkbox"] { margin-right:8px; }
 
         /* Modal styles (single definition) */
         .modal-content { background-color: var(--dark-green); color: white; }
@@ -185,7 +187,7 @@
         .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
         .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
         .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
-        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.3); }
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.6); }
 
         /* make sure map controls and modal don't get hidden by body overflow */
         #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
@@ -245,6 +247,25 @@
             </div>
             <div id="map"></div>
             <div class="map-controls">
+                <div class="data-selector">
+                    <button class="control-btn" onclick="toggleDataSelector()" title="Toggle Data Layers">
+                        <i class="fas fa-layer-group"></i>
+                    </button>
+                    <div class="data-options" id="dataOptions">
+                        <label class="data-option" onclick="toggleDataLayer('aridity', event)">
+                            <input type="checkbox" id="chkAridity">
+                            <img src="images/Thumbnails/Aridity Thumbnail.png" class="data-thumb" alt="Aridity">
+                            <span>Aridity Index</span>
+                        </label>
+                        <label class="data-option" onclick="toggleDataLayer('cropland', event)">
+                            <input type="checkbox" id="chkCropland">
+                            <img src="images/Thumbnails/Cropland Thumbnail.png" class="data-thumb" alt="Cropland">
+                            <span>Cropland</span>
+                        </label>
+                        <div style="font-size:0.8em; color:#666; margin-top:6px;">Note: replace placeholders with real layer-loading code (GeoTIFF/tiles).</div>
+                    </div>
+                </div>
+
                 <div class="basemap-selector">
                     <button class="control-btn" onclick="toggleBasemapSelector()" title="Change Basemap">
                         <i class="fas fa-map"></i>
@@ -346,6 +367,10 @@
         let osmLayer;
         let satelliteLayer;
 
+        // Data layer placeholders (replace with real GeoTIFF/tile loading)
+        let dataLayerAridity = null;
+        let dataLayerCropland = null;
+
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Hide loader
@@ -366,6 +391,10 @@
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             });
+
+            // Initialize any UI state for checkboxes
+            document.getElementById('chkAridity').checked = false;
+            document.getElementById('chkCropland').checked = false;
         });
 
         // Zoom functions
@@ -377,6 +406,8 @@
         function toggleBasemapSelector() {
             const options = document.getElementById('basemapOptions');
             options.classList.toggle('show');
+            // close data options if open
+            document.getElementById('dataOptions').classList.remove('show');
         }
 
         function changeBasemap(basemap) {
@@ -390,12 +421,70 @@
             document.getElementById('basemapOptions').classList.remove('show');
         }
 
-        // Close basemap options when clicking outside
+        // Data layers UI functions
+        function toggleDataSelector() {
+            const options = document.getElementById('dataOptions');
+            options.classList.toggle('show');
+            // close basemap options if open
+            document.getElementById('basemapOptions').classList.remove('show');
+        }
+
+        // When the user clicks a data option label we receive the id and the click event so we can stop the
+        // checkbox from immediately toggling twice (label + explicit checkbox click). We manage checkbox state inside.
+        function toggleDataLayer(id, evt) {
+            if (evt) evt.stopPropagation();
+            if (id === 'aridity') {
+                const chk = document.getElementById('chkAridity');
+                const willBeChecked = !chk.checked;
+                chk.checked = willBeChecked;
+                if (willBeChecked) addAridityLayer(); else removeAridityLayer();
+            } else if (id === 'cropland') {
+                const chk = document.getElementById('chkCropland');
+                const willBeChecked = !chk.checked;
+                chk.checked = willBeChecked;
+                if (willBeChecked) addCroplandLayer(); else removeCroplandLayer();
+            }
+        }
+
+        // Stub implementations for adding/removing data layers.
+        // Replace these with actual GeoTIFF or tile loading logic (e.g. georaster + georaster-layer-for-leaflet,
+        // or pre-rendered tiles / WMS endpoints).
+        function addAridityLayer() {
+            if (dataLayerAridity) return; // already added
+            // Placeholder: draw a semi-transparent rectangle representing extent
+            const bounds = [[-5, 33], [5, 42]]; // example bounds over Kenya — replace with real bounds
+            dataLayerAridity = L.rectangle(bounds, {color: '#ff7800', weight: 1, fillOpacity: 0.25}).addTo(map);
+            dataLayerAridity.bindPopup('Aridity Index (placeholder)');
+        }
+        function removeAridityLayer() {
+            if (!dataLayerAridity) return;
+            map.removeLayer(dataLayerAridity);
+            dataLayerAridity = null;
+        }
+
+        function addCroplandLayer() {
+            if (dataLayerCropland) return;
+            const bounds = [[-3, 34], [3, 41]]; // slightly different example bounds
+            dataLayerCropland = L.rectangle(bounds, {color: '#2b8cbe', weight: 1, fillOpacity: 0.25}).addTo(map);
+            dataLayerCropland.bindPopup('Cropland (placeholder)');
+        }
+        function removeCroplandLayer() {
+            if (!dataLayerCropland) return;
+            map.removeLayer(dataLayerCropland);
+            dataLayerCropland = null;
+        }
+
+        // Close option panels when clicking outside
         document.addEventListener('click', function(event) {
-            const selector = document.querySelector('.basemap-selector');
-            const options = document.getElementById('basemapOptions');
-            if (selector && !selector.contains(event.target)) {
-                options.classList.remove('show');
+            const basemapSelector = document.querySelector('.basemap-selector');
+            const basemapOptions = document.getElementById('basemapOptions');
+            if (basemapSelector && !basemapSelector.contains(event.target)) {
+                basemapOptions.classList.remove('show');
+            }
+            const dataSelector = document.querySelector('.data-selector');
+            const dataOptions = document.getElementById('dataOptions');
+            if (dataSelector && !dataSelector.contains(event.target)) {
+                dataOptions.classList.remove('show');
             }
         });
 
