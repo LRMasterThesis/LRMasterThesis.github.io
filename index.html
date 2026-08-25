@@ -176,7 +176,7 @@
         .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block;}
 
         /* rotate arrows when panel is closed */
-        .filter-panel-container.closed .filter-arrow { transform: rotate(180deg); }
+        .filter-panel-container:not(.closed) .filter-arrow { transform: rotate(180deg); }
 
         .filter-content { padding:10px; }
 
@@ -352,7 +352,7 @@
             document.getElementById('loader').style.display = 'none';
 
             // Initialize Leaflet map centered at 0.47°, 37.72° at zoom level 7
-            map = L.map('map').setView([0.47, 37.72], 7);
+            map = L.map('map').setView([0.47, 37.72], 6.5);
 
             // Add OpenStreetMap basemap (default)
             osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
