@@ -175,8 +175,8 @@
         .filter-toggle { display:flex; align-items:center; gap:8px; }
         .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block; }
 
-        /* rotate arrows when panel is open (not closed) */
-        .filter-panel:not(.closed) .filter-arrow { transform: rotate(180deg); }
+        /* rotate arrows when panel is closed) */
+        .filter-panel: .closed.filter-arrow { transform: rotate(180deg); }
 
         .filter-content { padding:10px; }
 
