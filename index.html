@@ -380,8 +380,6 @@
 
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Hide loader
-            document.getElementById('loader').style.display = 'none';
 
             // Initialize Leaflet map centered at 0.47°, 37.72° at zoom level 7
             map = L.map('map', {
@@ -403,6 +401,16 @@
             document.getElementById('chkAridity').checked = false;
             document.getElementById('chkCropland').checked = false;
             document.getElementById('chkRivers').checked = true;
+
+            // Load Rivers as default layer
+            try {
+                await addRiversLayer();
+            } catch (error) {
+                console.error('Could not load default Rivers layer:', error);
+            }
+
+            // Hide loader only after map/layers are initialized
+            document.getElementById('loader').style.display = 'none';
         });
 
         // Zoom functions
