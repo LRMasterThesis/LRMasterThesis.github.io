@@ -147,7 +147,7 @@
         .filter-panel-container {
             position: absolute;
             top: 12.5vh;    /* places the container directly under the top bar */
-            right: 52px;
+            right: 72px;
             z-index: 1180;  /* above map but under top-bar */
         }
 
@@ -155,7 +155,7 @@
         .filter-panel {
             width: 200px;
             background: rgba(0,0,0,0.4);
-            border-radius: 6px 6px 0 0;
+            border-radius: 0 0 6px 6px;
             overflow: hidden;
             transition: transform 0.28s cubic-bezier(.2,.8,.2,1);
             transform: translateY(0);
@@ -169,7 +169,7 @@
 
         .filter-header {
             height: 30px; display:flex; align-items:center; justify-content:center; cursor:pointer;
-            color: white; font-size:0.9em; background: rgba(0,0,0,0.55); padding: 0 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: white; font-size:0.9em; background: rgba(0,0,0,0.4); padding: 0 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .filter-header:hover { background: rgba(255,255,255,0.03); }
         .filter-toggle { display:flex; align-items:center; gap:8px; }
