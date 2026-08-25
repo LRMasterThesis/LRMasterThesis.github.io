@@ -281,6 +281,10 @@
                             <input type="checkbox" id="chkCropland">
                             <span>Cropland</span>
                         </label>
+                        <label class="data-option" onclick="toggleDataLayer('rivers', event)">
+                            <input type="checkbox" id="chkRivers">
+                            <span>Rivers</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -372,6 +376,7 @@
         // Data layer variables
         let dataLayerAridity = null;
         let dataLayerCropland = null;
+        let dataLayerRivers = null;
 
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -397,6 +402,7 @@
             // Initialize any UI state for checkboxes
             document.getElementById('chkAridity').checked = false;
             document.getElementById('chkCropland').checked = false;
+            document.getElementById('chkRivers').checked = false;
         });
 
         // Zoom functions
@@ -445,6 +451,11 @@
                 const willBeChecked = !chk.checked;
                 chk.checked = willBeChecked;
                 if (willBeChecked) addCroplandLayer(); else removeCroplandLayer();
+            } else if (id === 'rivers') {
+                const chk = document.getElementById('chkRivers');
+                const willBeChecked = !chk.checked;
+                chk.checked = willBeChecked;
+                if (willBeChecked) addRiversLayer(); else removeRiversLayer();
             }
         }
 
@@ -452,8 +463,8 @@
         async function addAridityLayer() {
             if (dataLayerAridity) return; // already added
             try {
-                const response = await fetch('Data/Aridity.tif');
-                if (!response.ok) throw new Error('Failed to fetch Aridity.tif');
+                const response = await fetch('Data/Aridity%20Index.tif');
+                if (!response.ok) throw new Error('Failed to fetch Aridity Index.tif');
                 
                 const arrayBuffer = await response.arrayBuffer();
                 const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
@@ -484,7 +495,7 @@
                 console.log('Aridity layer loaded successfully');
             } catch (error) {
                 console.error('Error loading Aridity layer:', error);
-                alert('Failed to load Aridity layer. Make sure Data/Aridity.tif exists.');
+                alert('Failed to load Aridity layer. Make sure Data/Aridity Index.tif exists.');
             }
         }
 
@@ -537,6 +548,46 @@
             if (!dataLayerCropland) return;
             map.removeLayer(dataLayerCropland);
             dataLayerCropland = null;
+        }
+
+        // Load GeoJSON Rivers layer
+        async function addRiversLayer() {
+            if (dataLayerRivers) return; // already added
+            try {
+                const response = await fetch('Data/Rivers.geojson');
+                if (!response.ok) throw new Error('Failed to fetch Rivers.geojson');
+                
+                const geojsonData = await response.json();
+                
+                dataLayerRivers = L.geoJSON(geojsonData, {
+                    style: {
+                        color: '#2b8cbe',
+                        weight: 2,
+                        opacity: 0.8
+                    },
+                    onEachFeature: function(feature, layer) {
+                        if (feature.properties) {
+                            let popupContent = '<div>';
+                            for (let key in feature.properties) {
+                                popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
+                            }
+                            popupContent += '</div>';
+                            layer.bindPopup(popupContent);
+                        }
+                    }
+                }).addTo(map);
+                
+                console.log('Rivers layer loaded successfully');
+            } catch (error) {
+                console.error('Error loading Rivers layer:', error);
+                alert('Failed to load Rivers layer. Make sure Data/Rivers.geojson exists.');
+            }
+        }
+
+        function removeRiversLayer() {
+            if (!dataLayerRivers) return;
+            map.removeLayer(dataLayerRivers);
+            dataLayerRivers = null;
         }
 
         // Close option panels when clicking outside
