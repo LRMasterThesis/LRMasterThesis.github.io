@@ -354,8 +354,8 @@
             // Initialize Leaflet map centered at 0.47°, 37.72° at zoom level 7
             map = L.map('map', {
                 zoomSnap: 0,  // Allow fractional zoom levels like 6.5
-                zoomDelta: 2   // Zoom increment by 1 per scroll
-            }).setView([0.17, 37.72], 6.5);
+                zoomDelta: 1   // Zoom increment by 1 per scroll
+            }).setView([0.05, 38.92], 6.5);
 
             // Add OpenStreetMap basemap (default)
             osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
