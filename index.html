@@ -173,10 +173,10 @@
         }
         .filter-header:hover { background: rgba(255,255,255,0.03); }
         .filter-toggle { display:flex; align-items:center; gap:8px; }
-        .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block; }
+        .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block; transform: rotate(180deg)}
 
         /* rotate arrows when panel is closed) */
-        .filter-panel: .closed.filter-arrow { transform: rotate(180deg); }
+        .filter-panel: .closed.filter-arrow { transform: rotate(0deg); }
 
         .filter-content { padding:10px; }
 
