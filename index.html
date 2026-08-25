@@ -16,6 +16,7 @@
     <link type="text/css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
 
     <style>
+        /* Reset / base */
         body {
             margin: 0;
             padding: 0;
@@ -31,6 +32,8 @@
 
         /* Top bar (12.5% height) */
         #top-bar {
+            position: relative; /* ensure z-index creates stacking context */
+            z-index: 1200;      /* on top of filter panel */
             height: 12.5vh;
             background-color: var(--dark-green);
             color: white;
@@ -39,9 +42,8 @@
             align-items: center;
             justify-content: space-between;
             box-sizing: border-box;
-            z-index: 1001
-            
         }
+
         #title-text {
             font-family: 'Oswald', sans-serif;
             font-size: 1.5rem;
@@ -51,11 +53,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         #top-buttons {
             display: flex;
             gap: 10px;
             padding: 0 20px;
         }
+
         .top-btn {
             cursor: pointer;
             color: white;
@@ -67,31 +71,25 @@
             background-color: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--light-grey);
         }
-        .top-btn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
+
+        .top-btn:hover { background-color: rgba(255,255,255,0.2); }
 
         /* Main container (87.5% height) */
-        #main-container {
-            height: 87.5vh;
-            display: flex;
-        }
+        #main-container { height: 87.5vh; display: flex; }
 
-        /* Left sidebar (33% width) - Dark green */
+        /* Left sidebar (33% width) */
         #sidebar {
             width: 33%;
             background-color: var(--dark-green);
             overflow-y: auto;
             padding: 10px;
             box-sizing: border-box;
-        }
-        /* CSS Grid layout for charts */
-        #sidebar {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             auto-rows: 120px;
         }
+
         .chart-placeholder {
             background-color: #2a4a2a;
             border: 1px solid var(--light-grey);
@@ -102,505 +100,90 @@
             color: #adb5bd;
             font-size: 0.9em;
         }
-        /* Full-width charts (span both columns) */
-        .chart-placeholder.full-width {
-            grid-column: span 2;
-        }
+        .chart-placeholder.full-width { grid-column: span 2; }
 
         /* Map container (67% width) */
-        #map-container {
-            width: 67%;
-            position: relative;
-        }
-        #map {
-            height: 100%;
-            width: 100%;
-        }
+        #map-container { width: 67%; position: relative; }
+        #map { height: 100%; width: 100%; }
 
         /* Map controls - Basemap selector */
-        .map-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-        }
-        .filter-panel-container {
-            position: absolute;
-            top: 0;
-            right: 52px;
-            z-index: 1000;
-        }
-        .basemap-selector {
-            position: relative;
-            display: inline-block;
-        }
+        .map-controls { position: absolute; top: 10px; right: 10px; z-index: 1190; }
+
+        .basemap-selector { position: relative; display: inline-block; }
         .control-btn {
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            margin: 0;
-            padding: 0;
-            border: 1px solid var(--light-grey);
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 4px;
-            color: #333;
-            box-sizing: border-box;
+            width: 42px; height: 42px; display:flex; align-items:center; justify-content:center;
+            cursor:pointer; margin:0; padding:0; border:1px solid var(--light-grey);
+            background: rgba(255,255,255,0.9); border-radius:4px; color:#333; box-sizing:border-box;
         }
-        .control-btn:hover {
-            background: #f1f1f1;
-        }
+        .control-btn:hover { background:#f1f1f1; }
+
         .basemap-options {
             display: none;
-            position: absolute;
-            left: -180px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 170px;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-        }
-        .basemap-option:hover {
-            background: #f5f5f5;
-        }
-        .basemap-thumb {
-            width: 42px;
-            height: 42px;
-            object-fit: cover;
-            border: 1px solid var(--light-grey);
-            border-radius: 3px;
-        }
-
-        /* Modal styles */
-        .modal-content {
-            background-color: var(--dark-green);
-            color: white;
-        }
-        .modal-header, .modal-body {
-            border-color: var(--light-grey);
-        }
-        .modal-title {
-            color: white;
-        }
-        .close {
-            color: white;
-        }
-
-
-
-
-        /* Wider basemap options */
-        .basemap-options {
             position: absolute;
             left: -230px;
             top: 0;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255,255,255,0.95);
             border: 1px solid var(--light-grey);
             border-radius: 4px;
             padding: 5px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
+            z-index: 1210; /* above top-bar when open */
             width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
             white-space: nowrap;
         }
+        .basemap-options.show { display: block; }
+        .basemap-option { padding:8px; cursor:pointer; display:flex; align-items:center; gap:8px; border-radius:3px; font-size:0.9em; }
+        .basemap-option:hover { background:#f5f5f5; }
+        .basemap-thumb { width:42px; height:42px; object-fit:cover; border:1px solid var(--light-grey); border-radius:3px; }
 
-        /* Basemap selector - opens to the left */
-        .basemap-selector {
-            position: relative;
-            display: inline-block;
-        }
-        .basemap-options {
-            position: absolute;
-            left: -230px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-        .basemap-option:hover {
-            background: #f5f5f5;
-        }
-
-        /* Modal styles */
-        .modal-content {
-            background-color: var(--dark-green);
-            color: white;
-        }
-        .modal-header, .modal-body {
-            border-color: var(--light-grey);
-        }
-        .modal-title {
-            color: white;
-        }
-        .close {
-            color: white;
-        }
+        /* Modal styles (single definition) */
+        .modal-content { background-color: var(--dark-green); color: white; }
+        .modal-header, .modal-body { border-color: var(--light-grey); }
+        .modal-title { color: white; }
+        .close { color: white; }
 
 
-
-
-        /* Wider basemap options */
-        .basemap-options {
-            position: absolute;
-            left: -230px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-
-        /* Basemap selector - opens to the left */
-        .basemap-selector {
-            position: relative;
-            display: inline-block;
-        }
-        .basemap-options {
-            position: absolute;
-            left: -230px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-        .basemap-option:hover {
-            background: #f5f5f5;
-        }}}}}}
-        /* Modal styles */
-        .modal-content {
-            background-color: var(--dark-green);
-            color: white;
-        }
-        .modal-header, .modal-body {
-            border-color: var(--light-grey);
-        }
-        .modal-title {
-            color: white;
-        }
-        .close {
-            color: white;
-        }
-
-
-
-
-        /* Wider basemap options */
-        .basemap-options {
-            position: absolute;
-            left: -230px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-
-        /* Basemap selector - opens to the left */
-        .basemap-selector {
-            position: relative;
-            display: inline-block;
-        }
-        .basemap-options {
-            position: absolute;
-            left: -230px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-        .basemap-option:hover {
-            background: #f5f5f5;
-        }
-
-        /* Modal styles */
-        .modal-content {
-            background-color: var(--dark-green);
-            color: white;
-        }
-        .modal-header, .modal-body {
-            border-color: var(--light-grey);
-        }
-        .modal-title {
-            color: white;
-        }
-        .close {
-            color: white;
-        }
-
-
-
-
-        /* Wider basemap options */
-        .basemap-options {
-            position: absolute;
-            left: -230px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-
-        /* Basemap selector - opens to the left */
-        .basemap-selector {
-            position: relative;
-            display: inline-block;
-        }
-        .basemap-options {
-            position: absolute;
-            left: -230px;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 220px;
-            display: none;
-        }
-        .basemap-options.show {
-            display: block;
-        }
-        .basemap-option {
-            padding: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-        .basemap-option:hover {
-            background: #f5f5f5;
-        }}}}}}}}}}}}}}}
-
-        /* Filter Panel Styles */
+        /* Filter Panel Styles - single, consistent definition */
         .filter-panel-container {
             position: absolute;
-            top: 12.5vh;
+            top: 12.5vh;    /* places the container directly under the top bar */
             right: 52px;
-            z-index: 1000;
+            z-index: 1180;  /* above map but under top-bar */
         }
+
+        /* default: visible (transform=0); when .closed is present -> slide up out of view */
         .filter-panel {
             width: 200px;
-            background: rgba(7, 24, 7, 0.6);
+            background: rgba(7, 24, 7, 0.85);
             border-radius: 4px 4px 0 0;
             overflow: hidden;
-            transition: transform 0.3s ease-in-out;
-            transform: translateY(-170px);
+            transition: transform 0.28s cubic-bezier(.2,.8,.2,1);
+            transform: translateY(0);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            pointer-events: auto;
         }
-        .filter-panel.closed {
-            transform: translateY(-140px);
-        }
+
+        /* hidden state */
+        .filter-panel.closed { transform: translateY(-100%); }
+
         .filter-header {
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: white;
-            font-size: 0.9em;
-            background: rgba(7, 24, 7, 0.6);
-            padding: 0 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            height: 30px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+            color: white; font-size:0.9em; background: rgba(7,24,7,0.9); padding: 0 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-        .filter-header:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .filter-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .filter-arrow {
-            color: white;
-            font-size: 0.8em;
-            transition: transform 0.3s ease-in-out;
-        }
-        .filter-content {
-            padding: 10px;
-        }
-        .filter-slider-wrapper {
-            margin-bottom: 15px;
-        }
-        .filter-slider-label {
-            color: white;
-            font-size: 0.8em;
-            margin-bottom: 5px;
-            display: block;
-        }
-        .dual-slider {
-            position: relative;
-            width: 100%;
-            height: 4px;
-            background: #444;
-            border-radius: 2px;
-        }
-        .dual-slider-track {
-            position: absolute;
-            height: 4px;
-            background: #444;
-            border-radius: 2px;
-            width: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .dual-slider-range {
-            position: absolute;
-            height: 4px;
-            background: #888;
-            border-radius: 2px;
-            z-index: 1;
-        }
-        .dual-slider-thumb {
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2;
-            box-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
+        .filter-header:hover { background: rgba(255,255,255,0.03); }
+        .filter-toggle { display:flex; align-items:center; gap:8px; }
+        .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; }
+        .filter-content { padding:10px; }
+
+        .filter-slider-wrapper { margin-bottom:15px; }
+        .filter-slider-label { color:white; font-size:0.8em; margin-bottom:5px; display:block; }
+        .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
+        .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
+        .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.5); }
+
+        /* make sure map controls and modal don't get hidden by body overflow */
+        #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
     </style>
 </head>
 
@@ -744,55 +327,6 @@
                     <p>Describe your map layers here.</p>
                 </div>
                                 </div>
-                <div class="filter-panel-container">
-                    <div class="filter-panel closed" id="filterPanel">
-                        <div class="filter-content">
-                            <div class="filter-slider-wrapper">
-                                <label class="filter-slider-label">Parameter 1</label>
-                                <div class="dual-slider" id="slider1">
-                                    <div class="dual-slider-track"></div>
-                                    <div class="dual-slider-range" id="range1"></div>
-                                    <div class="dual-slider-thumb" id="min1" style="left: 20%"></div>
-                                    <div class="dual-slider-thumb" id="max1" style="left: 80%"></div>
-                                </div>
-                            </div>
-                            <div class="filter-slider-wrapper">
-                                <label class="filter-slider-label">Parameter 2</label>
-                                <div class="dual-slider" id="slider2">
-                                    <div class="dual-slider-track"></div>
-                                    <div class="dual-slider-range" id="range2"></div>
-                                    <div class="dual-slider-thumb" id="min2" style="left: 20%"></div>
-                                    <div class="dual-slider-thumb" id="max2" style="left: 80%"></div>
-                                </div>
-                            </div>
-                            <div class="filter-slider-wrapper">
-                                <label class="filter-slider-label">Parameter 3</label>
-                                <div class="dual-slider" id="slider3">
-                                    <div class="dual-slider-track"></div>
-                                    <div class="dual-slider-range" id="range3"></div>
-                                    <div class="dual-slider-thumb" id="min3" style="left: 20%"></div>
-                                    <div class="dual-slider-thumb" id="max3" style="left: 80%"></div>
-                                </div>
-                            </div>
-                            <div class="filter-slider-wrapper">
-                                <label class="filter-slider-label">Parameter 4</label>
-                                <div class="dual-slider" id="slider4">
-                                    <div class="dual-slider-track"></div>
-                                    <div class="dual-slider-range" id="range4"></div>
-                                    <div class="dual-slider-thumb" id="min4" style="left: 20%"></div>
-                                    <div class="dual-slider-thumb" id="max4" style="left: 80%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="filter-header" onclick="toggleFilterPanel()">
-                            <div class="filter-toggle">
-                                <i class="fas fa-chevron-up filter-arrow" id="leftArrow"></i>
-                                <span id="filterText">Filters</span>
-                                <i class="fas fa-chevron-up filter-arrow" id="rightArrow"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -829,15 +363,9 @@
         });
 
         // Zoom functions
-        function zoomToCA() {
-            map.setView([15, -85], 5);
-        }
-        function zoomToWA() {
-            map.setView([10, 0], 4);
-        }
-        function zoomToRegions() {
-            map.setView([10, -40], 3);
-        }
+        function zoomToCA() { map.setView([15, -85], 5); }
+        function zoomToWA() { map.setView([10, 0], 4); }
+        function zoomToRegions() { map.setView([10, -40], 3); }
 
         // Basemap functions
         function toggleBasemapSelector() {
@@ -865,16 +393,13 @@
             }
         });
 
-        
-
-        
         // Filter panel toggle
         function toggleFilterPanel() {
             const panel = document.getElementById('filterPanel');
             const text = document.getElementById('filterText');
             const leftArrow = document.getElementById('leftArrow');
             const rightArrow = document.getElementById('rightArrow');
-            
+
             if (panel.classList.contains('closed')) {
                 panel.classList.remove('closed');
                 text.textContent = 'Filters';
@@ -894,7 +419,7 @@
             const minThumb = document.getElementById(minId);
             const maxThumb = document.getElementById(maxId);
             const range = document.getElementById(rangeId);
-            
+
             let minPercent = parseFloat(minThumb.style.left);
             let maxPercent = parseFloat(maxThumb.style.left);
             let isMinDragging = false;
@@ -909,39 +434,19 @@
                 range.style.width = (maxPercent - minPercent) + '%';
             }
 
-            minThumb.addEventListener('mousedown', (e) => {
-                isMinDragging = true;
-                e.preventDefault();
-            });
-            maxThumb.addEventListener('mousedown', (e) => {
-                isMaxDragging = true;
-                e.preventDefault();
-            });
+            minThumb.addEventListener('mousedown', (e) => { isMinDragging = true; e.preventDefault(); });
+            maxThumb.addEventListener('mousedown', (e) => { isMaxDragging = true; e.preventDefault(); });
 
             document.addEventListener('mousemove', (e) => {
                 if (!isMinDragging && !isMaxDragging) return;
-                
                 const rect = slider.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-
-                if (isMinDragging) {
-                    minPercent = percent;
-                    minThumb.style.left = percent + '%';
-                    updateRange();
-                }
-                if (isMaxDragging) {
-                    maxPercent = percent;
-                    maxThumb.style.left = percent + '%';
-                    updateRange();
-                }
+                if (isMinDragging) { minPercent = percent; minThumb.style.left = percent + '%'; updateRange(); }
+                if (isMaxDragging) { maxPercent = percent; maxThumb.style.left = percent + '%'; updateRange(); }
             });
 
-            document.addEventListener('mouseup', () => {
-                isMinDragging = false;
-                isMaxDragging = false;
-            });
-
+            document.addEventListener('mouseup', () => { isMinDragging = false; isMaxDragging = false; });
             updateRange();
         }
 
