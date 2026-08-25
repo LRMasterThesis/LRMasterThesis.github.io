@@ -151,20 +151,22 @@
             z-index: 1180;  /* above map but under top-bar */
         }
 
-        /* default: visible (transform=0); when .closed is present -> slide up out of view */
+        /* default: visible (transform=0); when .closed is present -> slide up out of view leaving header visible */
         .filter-panel {
             width: 200px;
-            background: rgba(7, 24, 7, 0.85);
+            /* changed to black with 60% opacity per request */
+            background: rgba(0,0,0,0.6);
             border-radius: 4px 4px 0 0;
             overflow: hidden;
             transition: transform 0.28s cubic-bezier(.2,.8,.2,1);
             transform: translateY(0);
             box-shadow: 0 6px 18px rgba(0,0,0,0.25);
             pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.06);
         }
 
-        /* hidden state */
-        .filter-panel.closed { transform: translateY(-100%); }
+        /* closed state: move up by full height minus header height so only header pokes out */
+        .filter-panel.closed { transform: translateY(calc(-100% + 30px)); }
 
         .filter-header {
             height: 30px; display:flex; align-items:center; justify-content:center; cursor:pointer;
@@ -172,7 +174,11 @@
         }
         .filter-header:hover { background: rgba(255,255,255,0.03); }
         .filter-toggle { display:flex; align-items:center; gap:8px; }
-        .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; }
+        .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block; }
+
+        /* rotate arrows when panel is open (not closed) */
+        .filter-panel:not(.closed) .filter-arrow { transform: rotate(180deg); }
+
         .filter-content { padding:10px; }
 
         .filter-slider-wrapper { margin-bottom:15px; }
@@ -180,7 +186,7 @@
         .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
         .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
         .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
-        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.5); }
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgb(0,0,0); }
 
         /* make sure map controls and modal don't get hidden by body overflow */
         #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
@@ -397,19 +403,18 @@
         function toggleFilterPanel() {
             const panel = document.getElementById('filterPanel');
             const text = document.getElementById('filterText');
-            const leftArrow = document.getElementById('leftArrow');
-            const rightArrow = document.getElementById('rightArrow');
+            // leftArrow and rightArrow keep the same icon; CSS rotation handles the visual change
+            // const leftArrow = document.getElementById('leftArrow');
+            // const rightArrow = document.getElementById('rightArrow');
 
             if (panel.classList.contains('closed')) {
+                // Panel was closed -> open it (lowered)
                 panel.classList.remove('closed');
-                text.textContent = 'Filters';
-                leftArrow.className = 'fas fa-chevron-down filter-arrow';
-                rightArrow.className = 'fas fa-chevron-down filter-arrow';
-            } else {
-                panel.classList.add('closed');
                 text.textContent = 'Close Filters';
-                leftArrow.className = 'fas fa-chevron-up filter-arrow';
-                rightArrow.className = 'fas fa-chevron-up filter-arrow';
+            } else {
+                // Panel was open -> close it (moved up), leaving only header visible
+                panel.classList.add('closed');
+                text.textContent = 'Filters';
             }
         }
 
