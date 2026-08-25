@@ -15,6 +15,11 @@
     <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"/>
     <link type="text/css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
 
+    <!-- GeoRaster Libraries for handling GeoTIFF files -->
+    <script src="https://unpkg.com/geotiff@2.1.3/dist/geotiff.js"></script>
+    <script src="https://unpkg.com/georaster@1.5.5/dist/georaster.browser.umd.js"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet@3.14.0/dist/georaster-layer-for-leaflet.umd.js"></script>
+
     <style>
         /* Reset / base */
         body {
@@ -364,7 +369,7 @@
         let osmLayer;
         let satelliteLayer;
 
-        // Data layer placeholders (replace with real GeoTIFF/tile loading)
+        // Data layer variables
         let dataLayerAridity = null;
         let dataLayerCropland = null;
 
@@ -443,41 +448,91 @@
             }
         }
 
-        // Stub implementations for adding/removing data layers.
-        // Replace these with actual GeoTIFF or tile loading logic (e.g. georaster + georaster-layer-for-leaflet,
-        // or pre-rendered tiles / WMS endpoints).
-        function addAridityLayer() {
+        // Load and display GeoTIFF raster data using GeoRaster library
+        async function addAridityLayer() {
             if (dataLayerAridity) return; // already added
-            // Load from Data folder
-            fetch('Data/Aridity.tif')
-                .then(response => response.blob())
-                .then(blob => {
-                    // Handle GeoTIFF data - placeholder for actual implementation
-                    const bounds = [[-5, 33], [5, 42]]; // example bounds over Kenya
-                    dataLayerAridity = L.rectangle(bounds, {color: '#ff7800', weight: 1, fillOpacity: 0.25}).addTo(map);
-                    dataLayerAridity.bindPopup('Aridity Index');
-                })
-                .catch(error => console.error('Error loading Aridity layer:', error));
+            try {
+                const response = await fetch('Data/Aridity.tif');
+                if (!response.ok) throw new Error('Failed to fetch Aridity.tif');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const image = await tiff.getImage();
+                const rasterData = await image.readRasters();
+                
+                const georaster = new GeoRaster({
+                    georasterData: rasterData,
+                    images: [image],
+                    crs: 4326
+                });
+
+                dataLayerAridity = new GeoRasterLayer({
+                    georaster: georaster,
+                    opacity: 0.7,
+                    pixelValuesToColorFn: values => {
+                        // Color mapping for aridity index (brown tones for high aridity)
+                        const value = values[0];
+                        if (value === undefined || value === null) return null;
+                        const normalized = Math.min(1, Math.max(0, value / 100));
+                        const r = Math.floor(200 + normalized * 55);
+                        const g = Math.floor(150 - normalized * 100);
+                        const b = Math.floor(80 - normalized * 80);
+                        return `rgba(${r}, ${g}, ${b}, 0.7)`;
+                    }
+                }).addTo(map);
+                
+                console.log('Aridity layer loaded successfully');
+            } catch (error) {
+                console.error('Error loading Aridity layer:', error);
+                alert('Failed to load Aridity layer. Make sure Data/Aridity.tif exists.');
+            }
         }
+
         function removeAridityLayer() {
             if (!dataLayerAridity) return;
             map.removeLayer(dataLayerAridity);
             dataLayerAridity = null;
         }
 
-        function addCroplandLayer() {
-            if (dataLayerCropland) return;
-            // Load from Data folder
-            fetch('Data/Cropland.tif')
-                .then(response => response.blob())
-                .then(blob => {
-                    // Handle GeoTIFF data - placeholder for actual implementation
-                    const bounds = [[-3, 34], [3, 41]]; // slightly different example bounds
-                    dataLayerCropland = L.rectangle(bounds, {color: '#2b8cbe', weight: 1, fillOpacity: 0.25}).addTo(map);
-                    dataLayerCropland.bindPopup('Cropland');
-                })
-                .catch(error => console.error('Error loading Cropland layer:', error));
+        async function addCroplandLayer() {
+            if (dataLayerCropland) return; // already added
+            try {
+                const response = await fetch('Data/Cropland.tif');
+                if (!response.ok) throw new Error('Failed to fetch Cropland.tif');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const image = await tiff.getImage();
+                const rasterData = await image.readRasters();
+                
+                const georaster = new GeoRaster({
+                    georasterData: rasterData,
+                    images: [image],
+                    crs: 4326
+                });
+
+                dataLayerCropland = new GeoRasterLayer({
+                    georaster: georaster,
+                    opacity: 0.7,
+                    pixelValuesToColorFn: values => {
+                        // Color mapping for cropland (green tones for higher cropland coverage)
+                        const value = values[0];
+                        if (value === undefined || value === null) return null;
+                        const normalized = Math.min(1, Math.max(0, value / 100));
+                        const r = Math.floor(200 - normalized * 150);
+                        const g = Math.floor(180 + normalized * 75);
+                        const b = Math.floor(100 - normalized * 100);
+                        return `rgba(${r}, ${g}, ${b}, 0.7)`;
+                    }
+                }).addTo(map);
+                
+                console.log('Cropland layer loaded successfully');
+            } catch (error) {
+                console.error('Error loading Cropland layer:', error);
+                alert('Failed to load Cropland layer. Make sure Data/Cropland.tif exists.');
+            }
         }
+
         function removeCroplandLayer() {
             if (!dataLayerCropland) return;
             map.removeLayer(dataLayerCropland);
