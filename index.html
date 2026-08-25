@@ -154,9 +154,8 @@
         /* default: visible (transform=0); when .closed is present -> slide up out of view leaving header visible */
         .filter-panel {
             width: 200px;
-            /* changed to black with 60% opacity per request */
-            background: rgba(0,0,0,0.6);
-            border-radius: 4px 4px 0 0;
+            background: rgba(0,0,0,0.4);
+            border-radius: 6px 6px 0 0;
             overflow: hidden;
             transition: transform 0.28s cubic-bezier(.2,.8,.2,1);
             transform: translateY(0);
@@ -170,7 +169,7 @@
 
         .filter-header {
             height: 30px; display:flex; align-items:center; justify-content:center; cursor:pointer;
-            color: white; font-size:0.9em; background: rgba(7,24,7,0.9); padding: 0 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: white; font-size:0.9em; background: rgba(0,0,0,0.55); padding: 0 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .filter-header:hover { background: rgba(255,255,255,0.03); }
         .filter-toggle { display:flex; align-items:center; gap:8px; }
