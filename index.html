@@ -15,8 +15,8 @@
     <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"/>
     <link type="text/css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
 
-    <!-- GeoRaster Libraries for handling GeoTIFF files -->
-    <script src="https://unpkg.com/geotiff@2.1.3/dist/geotiff.js"></script>
+    <!-- GeoRaster Libraries for handling Geotiff files -->
+    <script src="https://unpkg.com/geotiff@4.0.1/dist-browser/geotiff.js"></script>
     <script src="https://unpkg.com/georaster@1.5.5/dist/georaster.browser.umd.js"></script>
     <script src="https://unpkg.com/georaster-layer-for-leaflet@3.14.0/dist/georaster-layer-for-leaflet.umd.js"></script>
 
@@ -451,7 +451,7 @@
             }
         }
 
-        // Load and display GeoTIFF raster data using GeoRaster library
+        // Load and display Geotiff raster data using GeoRaster library
         async function addAridityLayer() {
             if (dataLayerAridity) return; // already added
             try {
@@ -463,7 +463,7 @@
                 const arrayBuffer = await response.arrayBuffer();
                 console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
                 
-                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const tiff = await Geotiff.fromArrayBuffer(arrayBuffer);
                 console.log('TIFF parsed successfully');
                 
                 const image = await tiff.getImage();
@@ -519,7 +519,7 @@
                 const arrayBuffer = await response.arrayBuffer();
                 console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
                 
-                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const tiff = await Geotiff.fromArrayBuffer(arrayBuffer);
                 console.log('TIFF parsed successfully');
                 
                 const image = await tiff.getImage();
