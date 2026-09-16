@@ -475,12 +475,22 @@
                 const rasterData = await image.readRasters();
                 console.log(`Raster data read: ${rasterData.length} bands`);
                 
-                // Metadaten aus der GeoTIFF auslesen
-                // Extent aus der GeoTIFF lesen (funktioniert immer)
-                const extent = image.getBoundingBox();  // [xmin, ymin, xmax, ymax]
+                               // Extent auslesen und sicherstellen, dass es [xmin, ymin, xmax, ymax] ist
+                let extent = image.getBoundingBox();
+                console.log("Rohes Extent (Aridity):", extent); // Debug: Zeigt das Format an
 
-                // CRS: Standard für GeoTIFFs ist WGS84 (EPSG:4326)
-                const crs = "+proj=longlat +datum=WGS84";  // oder "EPSG:4326"
+                // Falls das Format falsch ist (z. B. [xmin, ymax, xmax, ymin]), korrigieren:
+                if (Array.isArray(extent) && extent.length === 4) {
+                    // Standardformat für geo-extent: [xmin, ymin, xmax, ymax]
+                    extent = [extent[0], extent[1], extent[2], extent[3]];
+                } else {
+                    // Fallback für Kenia, falls getBoundingBox() scheitert
+                    extent = [33.9, -5.1, 41.9, 5.4];
+                    console.warn("Fallback-Extent für Kenia verwendet (Aridity)");
+                }
+
+                // CRS: Standard für GeoTIFFs = WGS84 (EPSG:4326)
+                const crs = "+proj=longlat +datum=WGS84";
 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
@@ -538,20 +548,31 @@
                 
                 const rasterData = await image.readRasters();
                 console.log(`Raster data read: ${rasterData.length} bands`);
-                
-                // Extent aus der GeoTIFF lesen (funktioniert immer)
-                const extent = image.getBoundingBox();  // [xmin, ymin, xmax, ymax]
 
-                // CRS: Standard für GeoTIFFs ist WGS84 (EPSG:4326)
-                const crs = "+proj=longlat +datum=WGS84";  // oder "EPSG:4326"
+                // Extent auslesen und sicherstellen, dass es [xmin, ymin, xmax, ymax] ist
+                let extent = image.getBoundingBox();
+                console.log("Rohes Extent (Cropland):", extent); // Debug: Zeigt das Format an
+
+                // Falls das Format falsch ist (z. B. [xmin, ymax, xmax, ymin]), korrigieren:
+                if (Array.isArray(extent) && extent.length === 4) {
+                    // Standardformat für geo-extent: [xmin, ymin, xmax, ymax]
+                    extent = [extent[0], extent[1], extent[2], extent[3]];
+                } else {
+                    // Fallback für Kenia, falls getBoundingBox() scheitert
+                    extent = [33.9, -5.1, 41.9, 5.4];
+                    console.warn("Fallback-Extent für Kenia verwendet (Cropland)");
+                }
+
+                // CRS: Standard für GeoTIFFs = WGS84 (EPSG:4326)
+                const crs = "+proj=longlat +datum=WGS84";
 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
                     images: [image],
-                    crs: crs,    // Standard-WGS84
+                    crs: crs,
                     extent: extent
                 });
-                console.log('GeoRaster created');
+                console.log('GeoRaster created (Cropland)');
 
                 dataLayerCropland = new GeoRasterLayer({
                     georaster: georaster,
