@@ -4,63 +4,24 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
-
     <title>Kenyan River Suitability</title>
 
-    <!-- Stylesheets -->
+    <!-- Stylesheets (CDNs) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald"/>
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap">
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.1.0/css/all.css"/>
+    <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"/>
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
 
-    <link
-        type="text/css"
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Oswald"
-    />
-
-    <link
-        type="text/css"
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap"
-    />
-
-    <link
-        type="text/css"
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.1.0/css/all.css"
-    />
-
-    <link
-        type="text/css"
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-    />
-
-    <link
-        type="text/css"
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-    >
-
-    <!-- =========================================================
-         GeoTIFF / GeoRaster Libraries
-         ========================================================= -->
-
-    <!-- GeoTIFF -->
-    <script src="https://unpkg.com/geotiff@2.1.3/dist-browser/geotiff.js"></script>
-
-    <!-- GeoRaster -->
+    <!-- GeoRaster Libraries for handling GeoTIFF files -->
+    <script src="https://unpkg.com/geotiff@2.1.3/dist/geotiff.js"></script>
     <script src="https://unpkg.com/georaster@1.5.5/dist/georaster.browser.umd.js"></script>
-
-    <!-- GeoRaster Layer for Leaflet -->
     <script src="https://unpkg.com/georaster-layer-for-leaflet@3.14.0/dist/georaster-layer-for-leaflet.umd.js"></script>
 
-
     <style>
-
-        /* =========================================================
-           RESET / BASE
-           ========================================================= */
-
+        /* Reset / base */
         body {
             margin: 0;
             padding: 0;
@@ -68,19 +29,16 @@
             overflow: hidden;
         }
 
+        /* Dark green color scheme */
         :root {
             --dark-green: #071807;
             --light-grey: #6c757d;
         }
 
-
-        /* =========================================================
-           TOP BAR
-           ========================================================= */
-
+        /* Top bar (12.5% height) */
         #top-bar {
-            position: relative;
-            z-index: 1200;
+            position: relative; /* ensure z-index creates stacking context */
+            z-index: 1200;      /* on top of filter panel */
             height: 12.5vh;
             background-color: var(--dark-green);
             color: white;
@@ -119,32 +77,18 @@
             border: 1px solid var(--light-grey);
         }
 
-        .top-btn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
+        .top-btn:hover { background-color: rgba(255,255,255,0.2); }
 
+        /* Main container (87.5% height) */
+        #main-container { height: 87.5vh; display: flex; }
 
-        /* =========================================================
-           MAIN CONTAINER
-           ========================================================= */
-
-        #main-container {
-            height: 87.5vh;
-            display: flex;
-        }
-
-
-        /* =========================================================
-           SIDEBAR
-           ========================================================= */
-
+        /* Left sidebar (33% width) */
         #sidebar {
             width: 33%;
             background-color: var(--dark-green);
             overflow-y: auto;
             padding: 10px;
             box-sizing: border-box;
-
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
@@ -155,2060 +99,589 @@
             background-color: #2a4a2a;
             border: 1px solid var(--light-grey);
             border-radius: 6px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             color: #adb5bd;
             font-size: 0.9em;
         }
+        .chart-placeholder.full-width { grid-column: span 2; }
 
-        .chart-placeholder.full-width {
-            grid-column: span 2;
-        }
+        /* Map container (67% width) */
+        #map-container { width: 67%; position: relative; }
+        #map { height: 100%; width: 100%; }
 
+        /* Map controls - Basemap selector */
+        .map-controls { position: absolute; top: 10px; right: 10px; z-index: 1190; display:flex; flex-direction: column; gap:8px; }
 
-        /* =========================================================
-           MAP
-           ========================================================= */
-
-        #map-container {
-            width: 67%;
-            position: relative;
-        }
-
-        #map {
-            height: 100%;
-            width: 100%;
-        }
-
-
-        /* =========================================================
-           MAP CONTROLS
-           ========================================================= */
-
-        .map-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1190;
-
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .basemap-selector,
-        .data-selector {
-            position: relative;
-            display: inline-block;
-        }
-
+        .basemap-selector, .data-selector { position: relative; display: inline-block; }
         .control-btn {
-            width: 42px;
-            height: 42px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            cursor: pointer;
-            margin: 0;
-            padding: 0;
-
-            border: 1px solid var(--light-grey);
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 6px;
-
-            color: #333;
-            box-sizing: border-box;
+            width: 42px; height: 42px; display:flex; align-items:center; justify-content:center;
+            cursor:pointer; margin:0; padding:0; border:1px solid var(--light-grey);
+            background: rgba(255,255,255,0.9); border-radius:6px; color:#333; box-sizing:border-box;
         }
+        .control-btn:hover { background:#f1f1f1; }
 
-        .control-btn:hover {
-            background: #f1f1f1;
-        }
-
-
-        /* =========================================================
-           BASEMAP / DATA OPTIONS
-           ========================================================= */
-
-        .basemap-options,
-        .data-options {
+        .basemap-options, .data-options {
             display: none;
-
             position: absolute;
             left: -230px;
             top: 0;
-
-            background: rgba(255, 255, 255, 0.95);
-
+            background: rgba(255,255,255,0.95);
             border: 1px solid var(--light-grey);
             border-radius: 6px;
-
             padding: 5px;
-
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-
-            z-index: 1210;
-
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1210; /* above top-bar when open */
             width: 220px;
             white-space: nowrap;
         }
+        .basemap-options.show, .data-options.show { display: block; }
+        .basemap-option, .data-option { padding:8px; cursor:pointer; display:flex; align-items:center; gap:8px; border-radius:6px; font-size:0.9em; }
+        .basemap-option:hover, .data-option:hover { background:#f5f5f5; }
+        .basemap-thumb, .data-thumb { width:42px; height:42px; object-fit:cover; border:1px solid var(--light-grey); border-radius:4px; }
 
-        .basemap-options.show,
-        .data-options.show {
-            display: block;
-        }
+        .data-option input[type="checkbox"] { margin-right:8px; }
 
-        .basemap-option,
-        .data-option {
-            padding: 8px;
-
-            cursor: pointer;
-
-            display: flex;
-            align-items: center;
-            gap: 8px;
-
-            border-radius: 6px;
-
-            font-size: 0.9em;
-        }
-
-        .basemap-option:hover,
-        .data-option:hover {
-            background: #f5f5f5;
-        }
-
-        .basemap-thumb,
-        .data-thumb {
-            width: 42px;
-            height: 42px;
-
-            object-fit: cover;
-
-            border: 1px solid var(--light-grey);
-            border-radius: 4px;
-        }
-
-        .data-option input[type="checkbox"] {
-            margin-right: 8px;
-        }
+        /* Modal styles (single definition) */
+        .modal-content { background-color: var(--dark-green); color: white; }
+        .modal-header, .modal-body { border-color: var(--light-grey); }
+        .modal-title { color: white; }
+        .close { color: white; }
 
 
-        /* =========================================================
-           MODAL
-           ========================================================= */
-
-        .modal-content {
-            background-color: var(--dark-green);
-            color: white;
-        }
-
-        .modal-header,
-        .modal-body {
-            border-color: var(--light-grey);
-        }
-
-        .modal-title {
-            color: white;
-        }
-
-        .close {
-            color: white;
-        }
-
-
-        /* =========================================================
-           FILTER PANEL
-           ========================================================= */
-
+        /* Filter Panel Styles - move container instead of panel */
         .filter-panel-container {
             position: absolute;
-
             top: 0vh;
             right: 62px;
-
             z-index: 1180;
-
-            transition:
-                transform 0.28s cubic-bezier(.2, .8, .2, 1);
-
+            transition: transform 0.28s cubic-bezier(.2,.8,.2,1);
             transform: translateY(0);
         }
 
+        /* closed state: move container up so only header is visible */
         .filter-panel-container.closed {
             transform: translateY(calc(-100% + 30px));
         }
 
         .filter-panel {
             width: 200px;
-
-            background: rgba(0, 0, 0, 0.4);
-
+            background: rgba(0,0,0,0.4);
             border-radius: 0 0 6px 6px;
-
             overflow: hidden;
-
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.06);
         }
 
         .filter-header {
-            height: 30px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            cursor: pointer;
-
-            color: white;
-
-            font-size: 0.9em;
-
-            background: rgba(0, 0, 0, 0.4);
-
-            padding: 0 10px;
-
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            height: 30px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+            color: white; font-size:0.9em; background: rgba(0,0,0,0.4); padding: 0 10px; border-bottom: 1px solid rgba(255,255,255,0.06);
         }
+        .filter-header:hover { background: rgba(255,255,255,0.03); }
+        .filter-toggle { display:flex; align-items:center; gap:8px; }
+        .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block;}
 
-        .filter-header:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
+        /* rotate arrows when panel is closed */
+        .filter-panel-container:not(.closed) .filter-arrow { transform: rotate(180deg); }
 
-        .filter-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .filter-content { padding:10px; }
 
-        .filter-arrow {
-            color: white;
-            font-size: 0.8em;
+        .filter-slider-wrapper { margin-bottom:15px; }
+        .filter-slider-label { color:white; font-size:0.8em; margin-bottom:5px; display:block; }
+        .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
+        .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
+        .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgb[...]
 
-            transition: transform 0.25s ease-in-out;
-
-            display: inline-block;
-        }
-
-        .filter-panel-container:not(.closed) .filter-arrow {
-            transform: rotate(180deg);
-        }
-
-        .filter-content {
-            padding: 10px;
-        }
-
-        .filter-slider-wrapper {
-            margin-bottom: 15px;
-        }
-
-        .filter-slider-label {
-            color: white;
-
-            font-size: 0.8em;
-
-            margin-bottom: 5px;
-
-            display: block;
-        }
-
-        .dual-slider {
-            position: relative;
-
-            width: 100%;
-            height: 4px;
-
-            background: #444;
-
-            border-radius: 2px;
-        }
-
-        .dual-slider-track {
-            position: absolute;
-
-            height: 4px;
-
-            background: #444;
-
-            border-radius: 2px;
-
-            width: 100%;
-
-            top: 50%;
-
-            transform: translateY(-50%);
-        }
-
-        .dual-slider-range {
-            position: absolute;
-
-            height: 4px;
-
-            background: #888;
-
-            border-radius: 2px;
-
-            z-index: 1;
-        }
-
-        .dual-slider-thumb {
-            position: absolute;
-
-            width: 14px;
-            height: 14px;
-
-            border-radius: 50%;
-
-            background: white;
-
-            cursor: pointer;
-
-            top: 50%;
-
-            transform: translate(-50%, -50%);
-
-            z-index: 2;
-
-            box-shadow: 0 0 2px rgb(0, 0, 0);
-        }
-
-        #map-container,
-        .map-controls,
-        .filter-panel-container,
-        .modal {
-            pointer-events: auto;
-        }
-
+        /* make sure map controls and modal don't get hidden by body overflow */
+        #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
     </style>
 </head>
 
-
 <body>
-
-    <!-- =========================================================
-         TOP BAR
-         ========================================================= -->
-
+    <!-- Top Bar -->
     <div id="top-bar">
-
-        <div id="title-text">
-            Kenyan River Suitability - Master Thesis by Luis Rother
-        </div>
-
+        <div id="title-text">Kenyan River Suitability - Master Thesis by Luis Rother</div>
         <div id="top-buttons">
-
-            <div
-                class="top-btn"
-                onclick="zoomToCA()"
-                data-toggle="tooltip"
-                title="Zoom to C. America"
-            >
+            <div class="top-btn" onclick="zoomToCA()" data-toggle="tooltip" title="Zoom to C. America">
                 <i class="far fa-fw fa-map"></i>
                 <span>C. America</span>
             </div>
-
-            <div
-                class="top-btn"
-                onclick="zoomToWA()"
-                data-toggle="tooltip"
-                title="Zoom to W. Africa"
-            >
+            <div class="top-btn" onclick="zoomToWA()" data-toggle="tooltip" title="Zoom to W. Africa">
                 <i class="far fa-fw fa-map"></i>
                 <span>W. Africa</span>
             </div>
-
-            <div
-                class="top-btn"
-                onclick="zoomToRegions()"
-                data-toggle="tooltip"
-                title="Zoom to Both Regions"
-            >
+            <div class="top-btn" onclick="zoomToRegions()" data-toggle="tooltip" title="Zoom to Both Regions">
                 <i class="far fa-fw fa-map"></i>
                 <span>Both Regions</span>
             </div>
-
-            <div
-                class="top-btn"
-                data-toggle="tooltip"
-                title="Reset Filters"
-            >
+            <div class="top-btn" data-toggle="tooltip" title="Reset Filters">
                 <i class="fas fa-chart-bar"></i>
                 <span>Reset Filters</span>
             </div>
-
-            <div
-                class="top-btn"
-                data-toggle="modal"
-                data-target="#info-modal"
-                title="About this Map"
-            >
+            <div class="top-btn" data-toggle="modal" data-target="#info-modal" data-toggle="tooltip" title="About this Map">
                 <i class="fa fa-fw fa-info-circle"></i>
                 <span>About this Map</span>
             </div>
-
         </div>
     </div>
 
-
-    <!-- =========================================================
-         MAIN CONTAINER
-         ========================================================= -->
-
+    <!-- Main Container -->
     <div id="main-container">
-
-        <!-- SIDEBAR -->
-
+        <!-- Left Sidebar with Placeholders -->
         <div id="sidebar">
-
-            <div class="chart-placeholder full-width">
-                Apprehensions by Date
-            </div>
-
-            <div class="chart-placeholder full-width">
-                Apprehensions by Month
-            </div>
-
-            <div class="chart-placeholder">
-                Apprehensions by Origin
-            </div>
-
-            <div class="chart-placeholder">
-                Apprehensions by Destination
-            </div>
-
-            <div class="chart-placeholder">
-                Apprehensions by Route
-            </div>
-
-            <div class="chart-placeholder">
-                Apprehensions by Border
-            </div>
-
-            <div class="chart-placeholder">
-                Apprehensions by Demographic
-            </div>
-
-            <div class="chart-placeholder">
-                Apprehensions by Age
-            </div>
-
-            <div class="chart-placeholder full-width">
-                Fatalities by Date
-            </div>
-
-            <div class="chart-placeholder full-width">
-                Fatalities by Month
-            </div>
-
-            <div class="chart-placeholder">
-                Fatalities by Region
-            </div>
-
-            <div class="chart-placeholder">
-                Fatalities by Event Type
-            </div>
-
+            <div class="chart-placeholder full-width">Apprehensions by Date</div>
+            <div class="chart-placeholder full-width">Apprehensions by Month</div>
+            <div class="chart-placeholder">Apprehensions by Origin</div>
+            <div class="chart-placeholder">Apprehensions by Destination</div>
+            <div class="chart-placeholder">Apprehensions by Route</div>
+            <div class="chart-placeholder">Apprehensions by Border</div>
+            <div class="chart-placeholder">Apprehensions by Demographic</div>
+            <div class="chart-placeholder">Apprehensions by Age</div>
+            <div class="chart-placeholder full-width">Fatalities by Date</div>
+            <div class="chart-placeholder full-width">Fatalities by Month</div>
+            <div class="chart-placeholder">Fatalities by Region</div>
+            <div class="chart-placeholder">Fatalities by Event Type</div>
         </div>
 
-
-        <!-- MAP -->
-
+        <!-- Map Container -->
         <div id="map-container">
-
-            <div
-                id="loader"
-                style="
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    z-index: 1000;
-                "
-            >
-                <h4>
-                    <i class="fas fa-cog fa-spin"></i>
-                    Loading map...
-                </h4>
+            <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+                <h4><i class="fas fa-cog fa-spin"></i> Loading map...</h4>
             </div>
-
-
             <div id="map"></div>
-
-
-            <!-- MAP CONTROLS -->
-
             <div class="map-controls">
-
-                <!-- BASEMAP -->
-
                 <div class="basemap-selector">
-
-                    <button
-                        class="control-btn"
-                        onclick="toggleBasemapSelector()"
-                        title="Change Basemap"
-                    >
+                    <button class="control-btn" onclick="toggleBasemapSelector()" title="Change Basemap">
                         <i class="fas fa-map"></i>
                     </button>
-
-                    <div
-                        class="basemap-options"
-                        id="basemapOptions"
-                    >
-
-                        <div
-                            class="basemap-option"
-                            onclick="changeBasemap('osm')"
-                        >
-                            <img
-                                src="images/Thumbnails/OSM Kenya Layer Thumbnail.png"
-                                class="basemap-thumb"
-                                alt="OpenStreetMap"
-                            >
-
-                            <span>
-                                OpenStreetMap
-                            </span>
+                    <div class="basemap-options" id="basemapOptions">
+                        <div class="basemap-option" onclick="changeBasemap('osm')">
+                            <img src="images/Thumbnails/OSM Kenya Layer Thumbnail.png" class="basemap-thumb" alt="OpenStreetMap">
+                            <span>OpenStreetMap</span>
                         </div>
-
-
-                        <div
-                            class="basemap-option"
-                            onclick="changeBasemap('satellite')"
-                        >
-                            <img
-                                src="images/Thumbnails/Satellite Kenya Layer Thumbnail.png"
-                                class="basemap-thumb"
-                                alt="Satellite"
-                            >
-
-                            <span>
-                                Satellite
-                            </span>
+                        <div class="basemap-option" onclick="changeBasemap('satellite')">
+                            <img src="images/Thumbnails/Satellite Kenya Layer Thumbnail.png" class="basemap-thumb" alt="Satellite">
+                            <span>Satellite</span>
                         </div>
-
                     </div>
-
                 </div>
-
-
-                <!-- DATA LAYERS -->
 
                 <div class="data-selector">
-
-                    <button
-                        class="control-btn"
-                        onclick="toggleDataSelector()"
-                        title="Toggle Data Layers"
-                    >
+                    <button class="control-btn" onclick="toggleDataSelector()" title="Toggle Data Layers">
                         <i class="fas fa-layer-group"></i>
                     </button>
-
-
-                    <div
-                        class="data-options"
-                        id="dataOptions"
-                    >
-
+                    <div class="data-options" id="dataOptions">
                         <label class="data-option">
-
-                            <input
-                                type="checkbox"
-                                id="chkAridity"
-                                onchange="toggleDataLayer('aridity')"
-                            >
-
-                            <span>
-                                Aridity Index
-                            </span>
-
+                            <input type="checkbox" id="chkAridity" onchange="toggleDataLayer('aridity')">
+                            <span>Aridity Index</span>
                         </label>
-
-
                         <label class="data-option">
-
-                            <input
-                                type="checkbox"
-                                id="chkCropland"
-                                onchange="toggleDataLayer('cropland')"
-                            >
-
-                            <span>
-                                Cropland
-                            </span>
-
+                            <input type="checkbox" id="chkCropland" onchange="toggleDataLayer('cropland')">
+                            <span>Cropland</span>
                         </label>
-
-
                         <label class="data-option">
-
-                            <input
-                                type="checkbox"
-                                id="chkRivers"
-                                onchange="toggleDataLayer('rivers')"
-                            >
-
-                            <span>
-                                Rivers
-                            </span>
-
+                            <input type="checkbox" id="chkRivers" onchange="toggleDataLayer('rivers')">
+                            <span>Rivers</span>
                         </label>
-
                     </div>
-
                 </div>
-
             </div>
-
-
-            <!-- FILTER PANEL -->
-
-            <div
-                class="filter-panel-container closed"
-                id="filterPanelContainer"
-            >
-
+            <div class="filter-panel-container closed" id="filterPanelContainer">
                 <div class="filter-panel">
-
                     <div class="filter-content">
-
                         <div class="filter-slider-wrapper">
-
-                            <label class="filter-slider-label">
-                                Parameter 1
-                            </label>
-
-                            <div
-                                class="dual-slider"
-                                id="slider1"
-                            >
-
+                            <label class="filter-slider-label">Parameter 1</label>
+                            <div class="dual-slider" id="slider1">
                                 <div class="dual-slider-track"></div>
-
-                                <div
-                                    class="dual-slider-range"
-                                    id="range1"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="min1"
-                                    style="left: 20%"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="max1"
-                                    style="left: 80%"
-                                ></div>
-
+                                <div class="dual-slider-range" id="range1"></div>
+                                <div class="dual-slider-thumb" id="min1" style="left: 20%"></div>
+                                <div class="dual-slider-thumb" id="max1" style="left: 80%"></div>
                             </div>
-
                         </div>
-
-
                         <div class="filter-slider-wrapper">
-
-                            <label class="filter-slider-label">
-                                Parameter 2
-                            </label>
-
-                            <div
-                                class="dual-slider"
-                                id="slider2"
-                            >
-
+                            <label class="filter-slider-label">Parameter 2</label>
+                            <div class="dual-slider" id="slider2">
                                 <div class="dual-slider-track"></div>
-
-                                <div
-                                    class="dual-slider-range"
-                                    id="range2"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="min2"
-                                    style="left: 20%"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="max2"
-                                    style="left: 80%"
-                                ></div>
-
+                                <div class="dual-slider-range" id="range2"></div>
+                                <div class="dual-slider-thumb" id="min2" style="left: 20%"></div>
+                                <div class="dual-slider-thumb" id="max2" style="left: 80%"></div>
                             </div>
-
                         </div>
-
-
                         <div class="filter-slider-wrapper">
-
-                            <label class="filter-slider-label">
-                                Parameter 3
-                            </label>
-
-                            <div
-                                class="dual-slider"
-                                id="slider3"
-                            >
-
+                            <label class="filter-slider-label">Parameter 3</label>
+                            <div class="dual-slider" id="slider3">
                                 <div class="dual-slider-track"></div>
-
-                                <div
-                                    class="dual-slider-range"
-                                    id="range3"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="min3"
-                                    style="left: 20%"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="max3"
-                                    style="left: 80%"
-                                ></div>
-
+                                <div class="dual-slider-range" id="range3"></div>
+                                <div class="dual-slider-thumb" id="min3" style="left: 20%"></div>
+                                <div class="dual-slider-thumb" id="max3" style="left: 80%"></div>
                             </div>
-
                         </div>
-
-
                         <div class="filter-slider-wrapper">
-
-                            <label class="filter-slider-label">
-                                Parameter 4
-                            </label>
-
-                            <div
-                                class="dual-slider"
-                                id="slider4"
-                            >
-
+                            <label class="filter-slider-label">Parameter 4</label>
+                            <div class="dual-slider" id="slider4">
                                 <div class="dual-slider-track"></div>
-
-                                <div
-                                    class="dual-slider-range"
-                                    id="range4"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="min4"
-                                    style="left: 20%"
-                                ></div>
-
-                                <div
-                                    class="dual-slider-thumb"
-                                    id="max4"
-                                    style="left: 80%"
-                                ></div>
-
+                                <div class="dual-slider-range" id="range4"></div>
+                                <div class="dual-slider-thumb" id="min4" style="left: 20%"></div>
+                                <div class="dual-slider-thumb" id="max4" style="left: 80%"></div>
                             </div>
-
                         </div>
-
                     </div>
-
-
-                    <div
-                        class="filter-header"
-                        onclick="toggleFilterPanel()"
-                    >
-
+                    <div class="filter-header" onclick="toggleFilterPanel()">
                         <div class="filter-toggle">
-
-                            <i
-                                class="fas fa-chevron-down filter-arrow"
-                                id="leftArrow"
-                            ></i>
-
-                            <span id="filterText">
-                                Filters
-                            </span>
-
-                            <i
-                                class="fas fa-chevron-down filter-arrow"
-                                id="rightArrow"
-                            ></i>
-
+                            <i class="fas fa-chevron-down filter-arrow" id="leftArrow"></i>
+                            <span id="filterText">Filters</span>
+                            <i class="fas fa-chevron-down filter-arrow" id="rightArrow"></i>
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
 
-    <!-- =========================================================
-         INFO MODAL
-         ========================================================= -->
 
-    <div
-        class="modal fade"
-        id="info-modal"
-        role="dialog"
-    >
-
+    <!-- Info Modal -->
+    <div class="modal fade" id="info-modal" role="dialog">
         <div class="modal-dialog modal-md">
-
             <div class="modal-content">
-
                 <div class="modal-header">
-
-                    <h4 class="modal-title">
-                        <b>About this Map</b>
-                    </h4>
-
-                    <button
-                        type="button"
-                        class="close"
-                        data-dismiss="modal"
-                    >
-                        &times;
-                    </button>
-
+                    <h4 class="modal-title"><b>About this Map</b></h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-
                 <div class="modal-body">
-
-                    <h5>
-                        <b>Overview</b>
-                    </h5>
-
-                    <p>
-                        This map is under development to support
-                        geovisual analytics of migration flows.
-                    </p>
-
+                    <h5><b>Overview</b></h5>
+                    <p>This map is under development to support geovisual analytics of migration flows.</p>
                     <hr>
-
-                    <h5>
-                        <b>Map layers</b>
-                    </h5>
-
-                    <p>
-                        Describe your map layers here.
-                    </p>
-
+                    <h5><b>Map layers</b></h5>
+                    <p>Describe your map layers here.</p>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- =========================================================
-         JAVASCRIPT LIBRARIES
-         ========================================================= -->
-
+    <!-- JavaScript Libraries (CDNs) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
-
-    <!-- =========================================================
-         APPLICATION JAVASCRIPT
-         ========================================================= -->
-
     <script>
-
-        /* =========================================================
-           GLOBAL VARIABLES
-           ========================================================= */
-
+        // Global map and layer variables
         let map;
-
         let osmLayer;
         let satelliteLayer;
 
+        // Data layer variables
         let dataLayerAridity = null;
         let dataLayerCropland = null;
         let dataLayerRivers = null;
 
+        // Initialize the map when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide loader
+            document.getElementById('loader').style.display = 'none';
 
-        /* =========================================================
-           CHECK LIBRARIES
-           ========================================================= */
+            // Initialize Leaflet map centered at 0.47°, 37.72° at zoom level 7
+            map = L.map('map', {
+                zoomSnap: 0,  // Allow fractional zoom levels like 6.5
+                zoomDelta: 1.5   // Zoom increment by 1 per scroll
+            }).setView([0.05, 38.22], 6.5);
 
-        console.log(
-            'GeoTIFF library:',
-            typeof GeoTIFF !== 'undefined'
-                ? 'loaded'
-                : 'NOT loaded'
-        );
+            // Add OpenStreetMap basemap (default)
+            osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
 
-        console.log(
-            'parseGeoraster:',
-            typeof parseGeoraster !== 'undefined'
-                ? 'loaded'
-                : 'NOT loaded'
-        );
+            // Add Satellite basemap (hidden by default)
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            });
 
-        console.log(
-            'GeoRasterLayer:',
-            typeof GeoRasterLayer !== 'undefined'
-                ? 'loaded'
-                : 'NOT loaded'
-        );
+            // Initialize any UI state for checkboxes
+            document.getElementById('chkAridity').checked = false;
+            document.getElementById('chkCropland').checked = false;
+            document.getElementById('chkRivers').checked = false;
+        });
 
+        // Zoom functions
+        function zoomToCA() { map.setView([15, -85], 5); }
+        function zoomToWA() { map.setView([10, 0], 4); }
+        function zoomToRegions() { map.setView([10, -40], 3); }
 
-        /* =========================================================
-           INITIALIZE MAP
-           ========================================================= */
-
-        document.addEventListener(
-            'DOMContentLoaded',
-            function () {
-
-                document.getElementById(
-                    'loader'
-                ).style.display = 'none';
-
-
-                map = L.map('map', {
-
-                    zoomSnap: 0,
-
-                    zoomDelta: 1.5
-
-                }).setView(
-                    [0.05, 38.22],
-                    6.5
-                );
-
-
-                /* -------------------------------------------------
-                   OpenStreetMap
-                   ------------------------------------------------- */
-
-                osmLayer = L.tileLayer(
-
-                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-
-                    {
-
-                        attribution:
-                            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-
-                    }
-
-                ).addTo(map);
-
-
-                /* -------------------------------------------------
-                   Satellite
-                   ------------------------------------------------- */
-
-                satelliteLayer = L.tileLayer(
-
-                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-
-                    {
-
-                        attribution:
-                            'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-
-                    }
-
-                );
-
-
-                /* -------------------------------------------------
-                   Checkbox initial state
-                   ------------------------------------------------- */
-
-                document.getElementById(
-                    'chkAridity'
-                ).checked = false;
-
-                document.getElementById(
-                    'chkCropland'
-                ).checked = false;
-
-                document.getElementById(
-                    'chkRivers'
-                ).checked = false;
-
-            }
-        );
-
-
-        /* =========================================================
-           ZOOM FUNCTIONS
-           ========================================================= */
-
-        function zoomToCA() {
-
-            map.setView(
-                [15, -85],
-                5
-            );
-
-        }
-
-
-        function zoomToWA() {
-
-            map.setView(
-                [10, 0],
-                4
-            );
-
-        }
-
-
-        function zoomToRegions() {
-
-            map.setView(
-                [10, -40],
-                3
-            );
-
-        }
-
-
-        /* =========================================================
-           BASEMAP FUNCTIONS
-           ========================================================= */
-
+        // Basemap functions
         function toggleBasemapSelector() {
-
-            const options =
-                document.getElementById(
-                    'basemapOptions'
-                );
-
-            options.classList.toggle(
-                'show'
-            );
-
-
-            document.getElementById(
-                'dataOptions'
-            ).classList.remove(
-                'show'
-            );
-
+            const options = document.getElementById('basemapOptions');
+            options.classList.toggle('show');
+            // close data options if open
+            document.getElementById('dataOptions').classList.remove('show');
         }
-
 
         function changeBasemap(basemap) {
-
             if (basemap === 'osm') {
-
-                if (map.hasLayer(satelliteLayer)) {
-                    map.removeLayer(satelliteLayer);
-                }
-
-                if (!map.hasLayer(osmLayer)) {
-                    map.addLayer(osmLayer);
-                }
-
+                map.removeLayer(satelliteLayer);
+                map.addLayer(osmLayer);
+            } else if (basemap === 'satellite') {
+                map.removeLayer(osmLayer);
+                map.addLayer(satelliteLayer);
             }
-
-
-            else if (basemap === 'satellite') {
-
-                if (map.hasLayer(osmLayer)) {
-                    map.removeLayer(osmLayer);
-                }
-
-                if (!map.hasLayer(satelliteLayer)) {
-                    map.addLayer(satelliteLayer);
-                }
-
-            }
-
-
-            document.getElementById(
-                'basemapOptions'
-            ).classList.remove(
-                'show'
-            );
-
+            document.getElementById('basemapOptions').classList.remove('show');
         }
 
-
-        /* =========================================================
-           DATA SELECTOR
-           ========================================================= */
-
+        // Data layers UI functions
         function toggleDataSelector() {
-
-            const options =
-                document.getElementById(
-                    'dataOptions'
-                );
-
-            options.classList.toggle(
-                'show'
-            );
-
-
-            document.getElementById(
-                'basemapOptions'
-            ).classList.remove(
-                'show'
-            );
-
+            const options = document.getElementById('dataOptions');
+            options.classList.toggle('show');
+            // close basemap options if open
+            document.getElementById('basemapOptions').classList.remove('show');
         }
 
-
-        /* =========================================================
-           DATA LAYER TOGGLE
-           ========================================================= */
-
+        // Toggle data layers based on checkbox state
         function toggleDataLayer(id) {
-
             if (id === 'aridity') {
-
-                const chk =
-                    document.getElementById(
-                        'chkAridity'
-                    );
-
-                if (chk.checked) {
-
-                    addAridityLayer();
-
-                } else {
-
-                    removeAridityLayer();
-
-                }
-
+                const chk = document.getElementById('chkAridity');
+                if (chk.checked) addAridityLayer(); else removeAridityLayer();
+            } else if (id === 'cropland') {
+                const chk = document.getElementById('chkCropland');
+                if (chk.checked) addCroplandLayer(); else removeCroplandLayer();
+            } else if (id === 'rivers') {
+                const chk = document.getElementById('chkRivers');
+                if (chk.checked) addRiversLayer(); else removeRiversLayer();
             }
-
-
-            else if (id === 'cropland') {
-
-                const chk =
-                    document.getElementById(
-                        'chkCropland'
-                    );
-
-                if (chk.checked) {
-
-                    addCroplandLayer();
-
-                } else {
-
-                    removeCroplandLayer();
-
-                }
-
-            }
-
-
-            else if (id === 'rivers') {
-
-                const chk =
-                    document.getElementById(
-                        'chkRivers'
-                    );
-
-                if (chk.checked) {
-
-                    addRiversLayer();
-
-                } else {
-
-                    removeRiversLayer();
-
-                }
-
-            }
-
         }
 
-
-        /* =========================================================
-           ARIDITY LAYER
-           ========================================================= */
-
+        // Load and display GeoTIFF raster data using GeoRaster library
         async function addAridityLayer() {
-
-            if (dataLayerAridity) {
-                return;
-            }
-
-
+            if (dataLayerAridity) return; // already added
             try {
+                console.log('Starting to load Aridity layer...');
+                const response = await fetch('Data/Aridity%20Index.tif');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                console.log('Response received, reading as array buffer...');
+                const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+                
+                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                console.log('TIFF parsed successfully');
+                
+                const image = await tiff.getImage();
+                console.log(`Image dimensions: ${image.getWidth()} x ${image.getHeight()}`);
+                
+                const rasterData = await image.readRasters();
+                console.log(`Raster data read: ${rasterData.length} bands`);
+                
+                const georaster = new GeoRaster({
+                    georasterData: rasterData,
+                    images: [image],
+                    crs: 4326
+                });
+                console.log('GeoRaster created');
 
-                console.log(
-                    'Starting to load Aridity layer...'
-                );
-
-
-                /*
-                 * parseGeoraster reads the GeoTIFF,
-                 * extracts the raster data,
-                 * CRS, dimensions and geographic extent.
-                 */
-
-                const georaster =
-                    await parseGeoraster(
-                        'Data/Aridity%20Index.tif'
-                    );
-
-
-                console.log(
-                    'Aridity GeoRaster loaded successfully'
-                );
-
-                console.log(
-                    'Width:',
-                    georaster.width
-                );
-
-                console.log(
-                    'Height:',
-                    georaster.height
-                );
-
-                console.log(
-                    'Bounds:',
-                    georaster.bounds
-                );
-
-                console.log(
-                    'Minimum values:',
-                    georaster.mins
-                );
-
-                console.log(
-                    'Maximum values:',
-                    georaster.maxs
-                );
-
-
-                /* -------------------------------------------------
-                   Create Leaflet raster layer
-                   ------------------------------------------------- */
-
-                dataLayerAridity =
-                    new GeoRasterLayer({
-
-                        georaster: georaster,
-
-                        opacity: 0.6,
-
-                        pixelValuesToColorFn:
-                            values => {
-
-                                const value =
-                                    values[0];
-
-
-                                if (
-                                    value === undefined ||
-                                    value === null ||
-                                    Number.isNaN(value)
-                                ) {
-
-                                    return null;
-
-                                }
-
-
-                                /*
-                                 * Normalize value to 0-1.
-                                 *
-                                 * NOTE:
-                                 * This assumes the raster values
-                                 * are approximately 0-255.
-                                 */
-
-                                const normalized =
-                                    Math.min(
-                                        1,
-                                        Math.max(
-                                            0,
-                                            value / 255
-                                        )
-                                    );
-
-
-                                const r =
-                                    Math.floor(
-                                        210 +
-                                        normalized * 45
-                                    );
-
-                                const g =
-                                    Math.floor(
-                                        140 -
-                                        normalized * 90
-                                    );
-
-                                const b =
-                                    Math.floor(
-                                        70 -
-                                        normalized * 70
-                                    );
-
-
-                                return (
-                                    `rgba(${r}, ${g}, ${b}, 0.6)`
-                                );
-
-                            }
-
-                    });
-
-
-                dataLayerAridity.addTo(map);
-
-
-                console.log(
-                    'Aridity layer added successfully'
-                );
-
+                dataLayerAridity = new GeoRasterLayer({
+                    georaster: georaster,
+                    opacity: 0.6,
+                    pixelValuesToColorFn: values => {
+                        const value = values[0];
+                        if (value === undefined || value === null) return null;
+                        const normalized = Math.min(1, Math.max(0, value / 255));
+                        const r = Math.floor(210 + normalized * 45);
+                        const g = Math.floor(140 - normalized * 90);
+                        const b = Math.floor(70 - normalized * 70);
+                        return `rgba(${r}, ${g}, ${b}, 0.6)`;
+                    }
+                }).addTo(map);
+                
+                console.log('Aridity layer added to map successfully');
+            } catch (error) {
+                console.error('Error loading Aridity layer:', error);
+                document.getElementById('chkAridity').checked = false;
+                alert('Failed to load Aridity layer: ' + error.message);
             }
-
-
-            catch (error) {
-
-                console.error(
-                    'Error loading Aridity layer:',
-                    error
-                );
-
-
-                document.getElementById(
-                    'chkAridity'
-                ).checked = false;
-
-
-                alert(
-                    'Failed to load Aridity layer: ' +
-                    error.message
-                );
-
-            }
-
         }
-
-
-        /* =========================================================
-           REMOVE ARIDITY
-           ========================================================= */
 
         function removeAridityLayer() {
-
-            if (!dataLayerAridity) {
-                return;
-            }
-
-
-            console.log(
-                'Removing Aridity layer'
-            );
-
-
-            map.removeLayer(
-                dataLayerAridity
-            );
-
-
+            if (!dataLayerAridity) return;
+            console.log('Removing Aridity layer');
+            map.removeLayer(dataLayerAridity);
             dataLayerAridity = null;
-
         }
-
-
-        /* =========================================================
-           CROPLAND LAYER
-           ========================================================= */
 
         async function addCroplandLayer() {
-
-            if (dataLayerCropland) {
-                return;
-            }
-
-
+            if (dataLayerCropland) return; // already added
             try {
+                console.log('Starting to load Cropland layer...');
+                const response = await fetch('Data/Cropland.tif');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                console.log('Response received, reading as array buffer...');
+                const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+                
+                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                console.log('TIFF parsed successfully');
+                
+                const image = await tiff.getImage();
+                console.log(`Image dimensions: ${image.getWidth()} x ${image.getHeight()}`);
+                
+                const rasterData = await image.readRasters();
+                console.log(`Raster data read: ${rasterData.length} bands`);
+                
+                const georaster = new GeoRaster({
+                    georasterData: rasterData,
+                    images: [image],
+                    crs: 4326
+                });
+                console.log('GeoRaster created');
 
-                console.log(
-                    'Starting to load Cropland layer...'
-                );
-
-
-                const georaster =
-                    await parseGeoraster(
-                        'Data/Cropland.tif'
-                    );
-
-
-                console.log(
-                    'Cropland GeoRaster loaded successfully'
-                );
-
-                console.log(
-                    'Width:',
-                    georaster.width
-                );
-
-                console.log(
-                    'Height:',
-                    georaster.height
-                );
-
-                console.log(
-                    'Bounds:',
-                    georaster.bounds
-                );
-
-                console.log(
-                    'Minimum values:',
-                    georaster.mins
-                );
-
-                console.log(
-                    'Maximum values:',
-                    georaster.maxs
-                );
-
-
-                dataLayerCropland =
-                    new GeoRasterLayer({
-
-                        georaster: georaster,
-
-                        opacity: 0.6,
-
-                        pixelValuesToColorFn:
-                            values => {
-
-                                const value =
-                                    values[0];
-
-
-                                if (
-                                    value === undefined ||
-                                    value === null ||
-                                    Number.isNaN(value)
-                                ) {
-
-                                    return null;
-
-                                }
-
-
-                                const normalized =
-                                    Math.min(
-                                        1,
-                                        Math.max(
-                                            0,
-                                            value / 255
-                                        )
-                                    );
-
-
-                                const r =
-                                    Math.floor(
-                                        190 -
-                                        normalized * 140
-                                    );
-
-                                const g =
-                                    Math.floor(
-                                        170 +
-                                        normalized * 70
-                                    );
-
-                                const b =
-                                    Math.floor(
-                                        90 -
-                                        normalized * 90
-                                    );
-
-
-                                return (
-                                    `rgba(${r}, ${g}, ${b}, 0.6)`
-                                );
-
-                            }
-
-                    });
-
-
-                dataLayerCropland.addTo(map);
-
-
-                console.log(
-                    'Cropland layer added successfully'
-                );
-
+                dataLayerCropland = new GeoRasterLayer({
+                    georaster: georaster,
+                    opacity: 0.6,
+                    pixelValuesToColorFn: values => {
+                        const value = values[0];
+                        if (value === undefined || value === null) return null;
+                        const normalized = Math.min(1, Math.max(0, value / 255));
+                        const r = Math.floor(190 - normalized * 140);
+                        const g = Math.floor(170 + normalized * 70);
+                        const b = Math.floor(90 - normalized * 90);
+                        return `rgba(${r}, ${g}, ${b}, 0.6)`;
+                    }
+                }).addTo(map);
+                
+                console.log('Cropland layer added to map successfully');
+            } catch (error) {
+                console.error('Error loading Cropland layer:', error);
+                document.getElementById('chkCropland').checked = false;
+                alert('Failed to load Cropland layer: ' + error.message);
             }
-
-
-            catch (error) {
-
-                console.error(
-                    'Error loading Cropland layer:',
-                    error
-                );
-
-
-                document.getElementById(
-                    'chkCropland'
-                ).checked = false;
-
-
-                alert(
-                    'Failed to load Cropland layer: ' +
-                    error.message
-                );
-
-            }
-
         }
-
-
-        /* =========================================================
-           REMOVE CROPLAND
-           ========================================================= */
 
         function removeCroplandLayer() {
-
-            if (!dataLayerCropland) {
-                return;
-            }
-
-
-            console.log(
-                'Removing Cropland layer'
-            );
-
-
-            map.removeLayer(
-                dataLayerCropland
-            );
-
-
+            if (!dataLayerCropland) return;
+            console.log('Removing Cropland layer');
+            map.removeLayer(dataLayerCropland);
             dataLayerCropland = null;
-
         }
 
-
-        /* =========================================================
-           RIVERS LAYER
-           ========================================================= */
-
+        // Load GeoJSON Rivers layer
         async function addRiversLayer() {
-
-            if (dataLayerRivers) {
-                return;
-            }
-
-
+            if (dataLayerRivers) return; // already added
             try {
-
-                console.log(
-                    'Starting to load Rivers layer...'
-                );
-
-
-                const response =
-                    await fetch(
-                        'Data/Rivers.geojson'
-                    );
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        `HTTP error! status: ${response.status}`
-                    );
-
-                }
-
-
-                const geojsonData =
-                    await response.json();
-
-
-                console.log(
-                    'GeoJSON parsed successfully'
-                );
-
-
-                dataLayerRivers =
-                    L.geoJSON(
-                        geojsonData,
-                        {
-
-                            style: {
-
-                                color: '#2b8cbe',
-
-                                weight: 2,
-
-                                opacity: 0.8
-
-                            },
-
-
-                            onEachFeature:
-                                function (
-                                    feature,
-                                    layer
-                                ) {
-
-                                    if (
-                                        feature.properties
-                                    ) {
-
-                                        let popupContent =
-                                            '<div>';
-
-
-                                        for (
-                                            let key
-                                            in feature.properties
-                                        ) {
-
-                                            popupContent +=
-                                                `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
-
-                                        }
-
-
-                                        popupContent +=
-                                            '</div>';
-
-
-                                        layer.bindPopup(
-                                            popupContent
-                                        );
-
-                                    }
-
-                                }
-
+                console.log('Starting to load Rivers layer...');
+                const response = await fetch('Data/Rivers.geojson');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const geojsonData = await response.json();
+                console.log('GeoJSON parsed successfully');
+                
+                dataLayerRivers = L.geoJSON(geojsonData, {
+                    style: {
+                        color: '#2b8cbe',
+                        weight: 2,
+                        opacity: 0.8
+                    },
+                    onEachFeature: function(feature, layer) {
+                        if (feature.properties) {
+                            let popupContent = '<div>';
+                            for (let key in feature.properties) {
+                                popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
+                            }
+                            popupContent += '</div>';
+                            layer.bindPopup(popupContent);
                         }
-                    ).addTo(map);
-
-
-                console.log(
-                    'Rivers layer added successfully'
-                );
-
+                    }
+                }).addTo(map);
+                
+                console.log('Rivers layer added to map successfully');
+            } catch (error) {
+                console.error('Error loading Rivers layer:', error);
+                document.getElementById('chkRivers').checked = false;
+                alert('Failed to load Rivers layer: ' + error.message);
             }
-
-
-            catch (error) {
-
-                console.error(
-                    'Error loading Rivers layer:',
-                    error
-                );
-
-
-                document.getElementById(
-                    'chkRivers'
-                ).checked = false;
-
-
-                alert(
-                    'Failed to load Rivers layer: ' +
-                    error.message
-                );
-
-            }
-
         }
-
-
-        /* =========================================================
-           REMOVE RIVERS
-           ========================================================= */
 
         function removeRiversLayer() {
-
-            if (!dataLayerRivers) {
-                return;
-            }
-
-
-            console.log(
-                'Removing Rivers layer'
-            );
-
-
-            map.removeLayer(
-                dataLayerRivers
-            );
-
-
+            if (!dataLayerRivers) return;
+            console.log('Removing Rivers layer');
+            map.removeLayer(dataLayerRivers);
             dataLayerRivers = null;
-
         }
 
-
-        /* =========================================================
-           CLOSE OPTIONS WHEN CLICKING OUTSIDE
-           ========================================================= */
-
-        document.addEventListener(
-            'click',
-            function (event) {
-
-                const basemapSelector =
-                    document.querySelector(
-                        '.basemap-selector'
-                    );
-
-                const basemapOptions =
-                    document.getElementById(
-                        'basemapOptions'
-                    );
-
-
-                if (
-                    basemapSelector &&
-                    !basemapSelector.contains(
-                        event.target
-                    )
-                ) {
-
-                    basemapOptions.classList.remove(
-                        'show'
-                    );
-
-                }
-
-
-                const dataSelector =
-                    document.querySelector(
-                        '.data-selector'
-                    );
-
-                const dataOptions =
-                    document.getElementById(
-                        'dataOptions'
-                    );
-
-
-                if (
-                    dataSelector &&
-                    !dataSelector.contains(
-                        event.target
-                    )
-                ) {
-
-                    dataOptions.classList.remove(
-                        'show'
-                    );
-
-                }
-
+        // Close option panels when clicking outside
+        document.addEventListener('click', function(event) {
+            const basemapSelector = document.querySelector('.basemap-selector');
+            const basemapOptions = document.getElementById('basemapOptions');
+            if (basemapSelector && !basemapSelector.contains(event.target)) {
+                basemapOptions.classList.remove('show');
             }
-        );
+            const dataSelector = document.querySelector('.data-selector');
+            const dataOptions = document.getElementById('dataOptions');
+            if (dataSelector && !dataSelector.contains(event.target)) {
+                dataOptions.classList.remove('show');
+            }
+        });
 
-
-        /* =========================================================
-           FILTER PANEL
-           ========================================================= */
-
+        // Filter panel toggle - now moves the container
         function toggleFilterPanel() {
+            const container = document.getElementById('filterPanelContainer');
+            const text = document.getElementById('filterText');
 
-            const container =
-                document.getElementById(
-                    'filterPanelContainer'
-                );
-
-            const text =
-                document.getElementById(
-                    'filterText'
-                );
-
-
-            if (
-                container.classList.contains(
-                    'closed'
-                )
-            ) {
-
-                container.classList.remove(
-                    'closed'
-                );
-
-                text.textContent =
-                    'Close Filters';
-
+            if (container.classList.contains('closed')) {
+                // Container was closed -> open it
+                container.classList.remove('closed');
+                text.textContent = 'Close Filters';
+            } else {
+                // Container was open -> close it, leaving only header visible
+                container.classList.add('closed');
+                text.textContent = 'Filters';
             }
-
-
-            else {
-
-                container.classList.add(
-                    'closed'
-                );
-
-                text.textContent =
-                    'Filters';
-
-            }
-
         }
 
+        // Dual slider functionality
+        function initDualSlider(sliderId, minId, maxId, rangeId) {
+            const slider = document.getElementById(sliderId);
+            const minThumb = document.getElementById(minId);
+            const maxThumb = document.getElementById(maxId);
+            const range = document.getElementById(rangeId);
 
-        /* =========================================================
-           DUAL SLIDER
-           ========================================================= */
-
-        function initDualSlider(
-            sliderId,
-            minId,
-            maxId,
-            rangeId
-        ) {
-
-            const slider =
-                document.getElementById(
-                    sliderId
-                );
-
-            const minThumb =
-                document.getElementById(
-                    minId
-                );
-
-            const maxThumb =
-                document.getElementById(
-                    maxId
-                );
-
-            const range =
-                document.getElementById(
-                    rangeId
-                );
-
-
-            let minPercent =
-                parseFloat(
-                    minThumb.style.left
-                );
-
-            let maxPercent =
-                parseFloat(
-                    maxThumb.style.left
-                );
-
-
+            let minPercent = parseFloat(minThumb.style.left);
+            let maxPercent = parseFloat(maxThumb.style.left);
             let isMinDragging = false;
             let isMaxDragging = false;
 
-
             function updateRange() {
-
-                if (
-                    maxPercent <
-                    minPercent
-                ) {
-
-                    [
-                        minPercent,
-                        maxPercent
-                    ] = [
-                        maxPercent,
-                        minPercent
-                    ];
-
-
-                    [
-                        minThumb.style.left,
-                        maxThumb.style.left
-                    ] = [
-                        maxThumb.style.left,
-                        minThumb.style.left
-                    ];
-
+                if (maxPercent < minPercent) {
+                    [minPercent, maxPercent] = [maxPercent, minPercent];
+                    [minThumb.style.left, maxThumb.style.left] = [maxThumb.style.left, minThumb.style.left];
                 }
-
-
-                range.style.left =
-                    minPercent + '%';
-
-
-                range.style.width =
-                    (
-                        maxPercent -
-                        minPercent
-                    ) + '%';
-
+                range.style.left = minPercent + '%';
+                range.style.width = (maxPercent - minPercent) + '%';
             }
 
+            minThumb.addEventListener('mousedown', (e) => { isMinDragging = true; e.preventDefault(); });
+            maxThumb.addEventListener('mousedown', (e) => { isMaxDragging = true; e.preventDefault(); });
 
-            minThumb.addEventListener(
-                'mousedown',
-                function (e) {
+            document.addEventListener('mousemove', (e) => {
+                if (!isMinDragging && !isMaxDragging) return;
+                const rect = slider.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                if (isMinDragging) { minPercent = percent; minThumb.style.left = percent + '%'; updateRange(); }
+                if (isMaxDragging) { maxPercent = percent; maxThumb.style.left = percent + '%'; updateRange(); }
+            });
 
-                    isMinDragging = true;
-
-                    e.preventDefault();
-
-                }
-            );
-
-
-            maxThumb.addEventListener(
-                'mousedown',
-                function (e) {
-
-                    isMaxDragging = true;
-
-                    e.preventDefault();
-
-                }
-            );
-
-
-            document.addEventListener(
-                'mousemove',
-                function (e) {
-
-                    if (
-                        !isMinDragging &&
-                        !isMaxDragging
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    const rect =
-                        slider.getBoundingClientRect();
-
-
-                    const x =
-                        e.clientX -
-                        rect.left;
-
-
-                    const percent =
-                        Math.max(
-                            0,
-                            Math.min(
-                                100,
-                                (
-                                    x /
-                                    rect.width
-                                ) * 100
-                            )
-                        );
-
-
-                    if (isMinDragging) {
-
-                        minPercent =
-                            percent;
-
-                        minThumb.style.left =
-                            percent + '%';
-
-                        updateRange();
-
-                    }
-
-
-                    if (isMaxDragging) {
-
-                        maxPercent =
-                            percent;
-
-                        maxThumb.style.left =
-                            percent + '%';
-
-                        updateRange();
-
-                    }
-
-                }
-            );
-
-
-            document.addEventListener(
-                'mouseup',
-                function () {
-
-                    isMinDragging = false;
-
-                    isMaxDragging = false;
-
-                }
-            );
-
-
+            document.addEventListener('mouseup', () => { isMinDragging = false; isMaxDragging = false; });
             updateRange();
-
         }
 
-
-        /* =========================================================
-           INITIALIZE SLIDERS
-           ========================================================= */
-
-        document.addEventListener(
-            'DOMContentLoaded',
-            function () {
-
-                initDualSlider(
-                    'slider1',
-                    'min1',
-                    'max1',
-                    'range1'
-                );
-
-                initDualSlider(
-                    'slider2',
-                    'min2',
-                    'max2',
-                    'range2'
-                );
-
-                initDualSlider(
-                    'slider3',
-                    'min3',
-                    'max3',
-                    'range3'
-                );
-
-                initDualSlider(
-                    'slider4',
-                    'min4',
-                    'max4',
-                    'range4'
-                );
-
-            }
-        );
-
+        // Initialize all dual sliders
+        document.addEventListener('DOMContentLoaded', function() {
+            initDualSlider('slider1', 'min1', 'max1', 'range1');
+            initDualSlider('slider2', 'min2', 'max2', 'range2');
+            initDualSlider('slider3', 'min3', 'max3', 'range3');
+            initDualSlider('slider4', 'min4', 'max4', 'range4');
+        });
     </script>
-
 </body>
 </html>
