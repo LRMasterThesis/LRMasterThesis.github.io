@@ -494,9 +494,7 @@
 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
-                    images: [image],
-                    crs: crs,    // Standard-WGS84
-                    extent: extent
+                    images: [image]
                 });
                 console.log('GeoRaster created');
 
@@ -568,9 +566,7 @@
 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
-                    images: [image],
-                    crs: crs,
-                    extent: extent
+                    images: [image]
                 });
                 console.log('GeoRaster created (Cropland)');
 
