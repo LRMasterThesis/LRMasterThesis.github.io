@@ -476,14 +476,17 @@
                 console.log(`Raster data read: ${rasterData.length} bands`);
                 
                 // Metadaten aus der GeoTIFF auslesen
+                // Extent aus der GeoTIFF lesen (funktioniert immer)
                 const extent = image.getBoundingBox();  // [xmin, ymin, xmax, ymax]
-                const projection = image.getProjection() || "+proj=longlat +datum=WGS84"; // Fallback zu WGS84
+
+                // CRS: Standard für GeoTIFFs ist WGS84 (EPSG:4326)
+                const crs = "+proj=longlat +datum=WGS84";  // oder "EPSG:4326"
 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
                     images: [image],
-                    crs: projection,  // Automatisch aus der Datei
-                    extent: extent    // Automatisch aus der Datei
+                    crs: crs,    // Standard-WGS84
+                    extent: extent
                 });
                 console.log('GeoRaster created');
 
@@ -536,15 +539,17 @@
                 const rasterData = await image.readRasters();
                 console.log(`Raster data read: ${rasterData.length} bands`);
                 
-                // Metadaten aus der GeoTIFF auslesen
+                // Extent aus der GeoTIFF lesen (funktioniert immer)
                 const extent = image.getBoundingBox();  // [xmin, ymin, xmax, ymax]
-                const projection = image.getProjection() || "+proj=longlat +datum=WGS84"; // Fallback zu WGS84
+
+                // CRS: Standard für GeoTIFFs ist WGS84 (EPSG:4326)
+                const crs = "+proj=longlat +datum=WGS84";  // oder "EPSG:4326"
 
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
                     images: [image],
-                    crs: projection,  // Automatisch aus der Datei
-                    extent: extent    // Automatisch aus der Datei
+                    crs: crs,    // Standard-WGS84
+                    extent: extent
                 });
                 console.log('GeoRaster created');
 
