@@ -198,7 +198,7 @@
         .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
         .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
         .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
-        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgb[...] }
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.5); }
 
         /* make sure map controls and modal don't get hidden by body overflow */
         #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
@@ -253,8 +253,9 @@
 
         <!-- Map Container -->
         <div id="map-container">
-            <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+            <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 10px;">
                 <h4><i class="fas fa-cog fa-spin"></i> Loading map...</h4>
+                <p id="loader-status" style="font-size: 0.9em; color: #666;"></p>
             </div>
             <div id="map"></div>
             <div class="map-controls">
@@ -380,10 +381,27 @@
 
         // Wait for all libraries to load before initializing
         function initializeApp() {
+            const statusEl = document.getElementById('loader-status');
+            
             // Check if required libraries are available
-            if (typeof GeoTIFF === 'undefined' || typeof GeoRaster === 'undefined' || typeof GeoRasterLayer === 'undefined') {
-                console.error('Required libraries not loaded. Retrying...');
-                setTimeout(initializeApp, 100);
+            if (typeof window.L === 'undefined') {
+                statusEl.textContent = 'Loading Leaflet...';
+                setTimeout(initializeApp, 200);
+                return;
+            }
+            if (typeof window.GeoTIFF === 'undefined') {
+                statusEl.textContent = 'Loading GeoTIFF...';
+                setTimeout(initializeApp, 200);
+                return;
+            }
+            if (typeof window.GeoRaster === 'undefined') {
+                statusEl.textContent = 'Loading GeoRaster...';
+                setTimeout(initializeApp, 200);
+                return;
+            }
+            if (typeof window.GeoRasterLayer === 'undefined') {
+                statusEl.textContent = 'Loading GeoRasterLayer...';
+                setTimeout(initializeApp, 200);
                 return;
             }
 
@@ -422,9 +440,9 @@
         document.addEventListener('DOMContentLoaded', initializeApp);
 
         // Zoom functions
-        function zoomToCA() { map.setView([15, -85], 5); }
-        function zoomToWA() { map.setView([10, 0], 4); }
-        function zoomToRegions() { map.setView([10, -40], 3); }
+        function zoomToCA() { if (map) map.setView([15, -85], 5); }
+        function zoomToWA() { if (map) map.setView([10, 0], 4); }
+        function zoomToRegions() { if (map) map.setView([10, -40], 3); }
 
         // Basemap functions
         function toggleBasemapSelector() {
