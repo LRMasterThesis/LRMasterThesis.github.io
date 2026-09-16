@@ -22,9 +22,9 @@
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
     <!-- GeoRaster Libraries for handling GeoTIFF files -->
-    <script src="https://unpkg.com/geotiff@2.1.3/dist/geotiff.js"></script>
-    <script src="https://unpkg.com/georaster@1.5.5/dist/georaster.browser.umd.js"></script>
-    <script src="https://unpkg.com/georaster-layer-for-leaflet@3.14.0/dist/georaster-layer-for-leaflet.umd.js"></script>
+    <script src="https://unpkg.com/geotiff@2.1.3/dist/geotiff.js" defer></script>
+    <script src="https://unpkg.com/georaster@1.5.5/dist/georaster.browser.umd.js" defer></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet@3.14.0/dist/georaster-layer-for-leaflet.umd.js" defer></script>
 
     <style>
         /* Reset / base */
@@ -256,6 +256,7 @@
             <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 10px;">
                 <h4><i class="fas fa-cog fa-spin"></i> Loading map...</h4>
                 <p id="loader-status" style="font-size: 0.9em; color: #666;"></p>
+                <p id="debug-info" style="font-size: 0.8em; color: #999; max-width: 300px; text-align: center;"></p>
             </div>
             <div id="map"></div>
             <div class="map-controls">
@@ -382,54 +383,79 @@
         // Wait for all libraries to load before initializing
         function initializeApp() {
             const statusEl = document.getElementById('loader-status');
+            const debugEl = document.getElementById('debug-info');
             
             // Check if required libraries are available
             if (typeof window.L === 'undefined') {
                 statusEl.textContent = 'Loading Leaflet...';
+                debugEl.textContent = 'Waiting for map library';
                 setTimeout(initializeApp, 200);
                 return;
             }
-            if (typeof window.GeoTIFF === 'undefined') {
-                statusEl.textContent = 'Loading GeoTIFF...';
-                setTimeout(initializeApp, 200);
-                return;
-            }
-            if (typeof window.GeoRaster === 'undefined') {
-                statusEl.textContent = 'Loading GeoRaster...';
-                setTimeout(initializeApp, 200);
-                return;
-            }
-            if (typeof window.GeoRasterLayer === 'undefined') {
-                statusEl.textContent = 'Loading GeoRasterLayer...';
-                setTimeout(initializeApp, 200);
+            
+            // If Leaflet is loaded but GeoTIFF libs are missing, initialize map anyway
+            if (typeof window.GeoTIFF === 'undefined' || typeof window.GeoRaster === 'undefined' || typeof window.GeoRasterLayer === 'undefined') {
+                statusEl.textContent = 'GeoTIFF libraries unavailable';
+                debugEl.textContent = 'Initializing map without raster support. Check console for CDN errors.';
+                console.warn('GeoTIFF:', typeof window.GeoTIFF);
+                console.warn('GeoRaster:', typeof window.GeoRaster);
+                console.warn('GeoRasterLayer:', typeof window.GeoRasterLayer);
+                
+                // Initialize map anyway so it's at least usable
+                initializeMapBasic();
                 return;
             }
 
-            // Hide loader
+            // Hide loader - all libraries loaded
             document.getElementById('loader').style.display = 'none';
+            initializeMapFull();
+        }
 
-            // Initialize Leaflet map centered at 0.47°, 37.72° at zoom level 7
+        // Initialize map with only basic features (no raster support)
+        function initializeMapBasic() {
+            document.getElementById('loader').style.display = 'none';
+            
             map = L.map('map', {
-                zoomSnap: 0,  // Allow fractional zoom levels like 6.5
-                zoomDelta: 1.5   // Zoom increment by 1 per scroll
+                zoomSnap: 0,
+                zoomDelta: 1.5
             }).setView([0.05, 38.22], 6.5);
 
-            // Add OpenStreetMap basemap (default)
             osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
 
-            // Add Satellite basemap (hidden by default)
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri'
+            });
+
+            console.log('Map initialized (basic mode - raster layers unavailable)');
+            initDualSliders();
+        }
+
+        // Initialize map with full features (including raster support)
+        function initializeMapFull() {
+            map = L.map('map', {
+                zoomSnap: 0,
+                zoomDelta: 1.5
+            }).setView([0.05, 38.22], 6.5);
+
+            osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             });
 
-            // Initialize any UI state for checkboxes
             document.getElementById('chkAridity').checked = false;
             document.getElementById('chkCropland').checked = false;
             document.getElementById('chkRivers').checked = false;
 
-            // Initialize dual sliders
+            initDualSliders();
+            console.log('Map initialized (full mode - raster layers available)');
+        }
+
+        function initDualSliders() {
             initDualSlider('slider1', 'min1', 'max1', 'range1');
             initDualSlider('slider2', 'min2', 'max2', 'range2');
             initDualSlider('slider3', 'min3', 'max3', 'range3');
@@ -448,7 +474,6 @@
         function toggleBasemapSelector() {
             const options = document.getElementById('basemapOptions');
             options.classList.toggle('show');
-            // close data options if open
             document.getElementById('dataOptions').classList.remove('show');
         }
 
@@ -467,7 +492,6 @@
         function toggleDataSelector() {
             const options = document.getElementById('dataOptions');
             options.classList.toggle('show');
-            // close basemap options if open
             document.getElementById('basemapOptions').classList.remove('show');
         }
 
@@ -487,31 +511,27 @@
 
         // Load and display GeoTIFF raster data using GeoRaster library
         async function addAridityLayer() {
-            if (dataLayerAridity) return; // already added
+            if (!window.GeoRasterLayer) {
+                alert('GeoRaster library not loaded. Raster layers are unavailable.');
+                document.getElementById('chkAridity').checked = false;
+                return;
+            }
+            if (dataLayerAridity) return;
             try {
                 console.log('Starting to load Aridity layer...');
                 const response = await fetch('Data/Aridity%20Index.tif');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
-                console.log('Response received, reading as array buffer...');
                 const arrayBuffer = await response.arrayBuffer();
-                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
-                
                 const tiff = await window.GeoTIFF.fromArrayBuffer(arrayBuffer);
-                console.log('TIFF parsed successfully');
-                
                 const image = await tiff.getImage();
-                console.log(`Image dimensions: ${image.getWidth()} x ${image.getHeight()}`);
-                
                 const rasterData = await image.readRasters();
-                console.log(`Raster data read: ${rasterData.length} bands`);
                 
                 const georaster = new window.GeoRaster({
                     georasterData: rasterData,
                     images: [image],
                     crs: 4326
                 });
-                console.log('GeoRaster created');
 
                 dataLayerAridity = new window.GeoRasterLayer({
                     georaster: georaster,
@@ -527,7 +547,7 @@
                     }
                 }).addTo(map);
                 
-                console.log('Aridity layer added to map successfully');
+                console.log('Aridity layer added successfully');
             } catch (error) {
                 console.error('Error loading Aridity layer:', error);
                 document.getElementById('chkAridity').checked = false;
@@ -537,37 +557,32 @@
 
         function removeAridityLayer() {
             if (!dataLayerAridity) return;
-            console.log('Removing Aridity layer');
             map.removeLayer(dataLayerAridity);
             dataLayerAridity = null;
         }
 
         async function addCroplandLayer() {
-            if (dataLayerCropland) return; // already added
+            if (!window.GeoRasterLayer) {
+                alert('GeoRaster library not loaded. Raster layers are unavailable.');
+                document.getElementById('chkCropland').checked = false;
+                return;
+            }
+            if (dataLayerCropland) return;
             try {
                 console.log('Starting to load Cropland layer...');
                 const response = await fetch('Data/Cropland.tif');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
-                console.log('Response received, reading as array buffer...');
                 const arrayBuffer = await response.arrayBuffer();
-                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
-                
                 const tiff = await window.GeoTIFF.fromArrayBuffer(arrayBuffer);
-                console.log('TIFF parsed successfully');
-                
                 const image = await tiff.getImage();
-                console.log(`Image dimensions: ${image.getWidth()} x ${image.getHeight()}`);
-                
                 const rasterData = await image.readRasters();
-                console.log(`Raster data read: ${rasterData.length} bands`);
                 
                 const georaster = new window.GeoRaster({
                     georasterData: rasterData,
                     images: [image],
                     crs: 4326
                 });
-                console.log('GeoRaster created');
 
                 dataLayerCropland = new window.GeoRasterLayer({
                     georaster: georaster,
@@ -583,7 +598,7 @@
                     }
                 }).addTo(map);
                 
-                console.log('Cropland layer added to map successfully');
+                console.log('Cropland layer added successfully');
             } catch (error) {
                 console.error('Error loading Cropland layer:', error);
                 document.getElementById('chkCropland').checked = false;
@@ -593,21 +608,19 @@
 
         function removeCroplandLayer() {
             if (!dataLayerCropland) return;
-            console.log('Removing Cropland layer');
             map.removeLayer(dataLayerCropland);
             dataLayerCropland = null;
         }
 
         // Load GeoJSON Rivers layer
         async function addRiversLayer() {
-            if (dataLayerRivers) return; // already added
+            if (dataLayerRivers) return;
             try {
                 console.log('Starting to load Rivers layer...');
                 const response = await fetch('Data/Rivers.geojson');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const geojsonData = await response.json();
-                console.log('GeoJSON parsed successfully');
                 
                 dataLayerRivers = L.geoJSON(geojsonData, {
                     style: {
@@ -627,7 +640,7 @@
                     }
                 }).addTo(map);
                 
-                console.log('Rivers layer added to map successfully');
+                console.log('Rivers layer added successfully');
             } catch (error) {
                 console.error('Error loading Rivers layer:', error);
                 document.getElementById('chkRivers').checked = false;
@@ -637,7 +650,6 @@
 
         function removeRiversLayer() {
             if (!dataLayerRivers) return;
-            console.log('Removing Rivers layer');
             map.removeLayer(dataLayerRivers);
             dataLayerRivers = null;
         }
@@ -656,17 +668,15 @@
             }
         });
 
-        // Filter panel toggle - now moves the container
+        // Filter panel toggle
         function toggleFilterPanel() {
             const container = document.getElementById('filterPanelContainer');
             const text = document.getElementById('filterText');
 
             if (container.classList.contains('closed')) {
-                // Container was closed -> open it
                 container.classList.remove('closed');
                 text.textContent = 'Close Filters';
             } else {
-                // Container was open -> close it, leaving only header visible
                 container.classList.add('closed');
                 text.textContent = 'Filters';
             }
