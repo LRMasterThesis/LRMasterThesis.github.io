@@ -15,6 +15,12 @@
     <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"/>
     <link type="text/css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
 
+    <!-- JavaScript Libraries (CDNs) - Load these FIRST -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
     <!-- GeoRaster Libraries for handling GeoTIFF files -->
     <script src="https://unpkg.com/geotiff@2.1.3/dist/geotiff.js"></script>
     <script src="https://unpkg.com/georaster@1.5.5/dist/georaster.browser.umd.js"></script>
@@ -192,7 +198,7 @@
         .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
         .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
         .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
-        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgb[...]
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgb[...] }
 
         /* make sure map controls and modal don't get hidden by body overflow */
         #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
@@ -361,12 +367,6 @@
         </div>
     </div>
 
-    <!-- JavaScript Libraries (CDNs) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-
     <script>
         // Global map and layer variables
         let map;
@@ -378,8 +378,15 @@
         let dataLayerCropland = null;
         let dataLayerRivers = null;
 
-        // Initialize the map when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        // Wait for all libraries to load before initializing
+        function initializeApp() {
+            // Check if required libraries are available
+            if (typeof GeoTIFF === 'undefined' || typeof GeoRaster === 'undefined' || typeof GeoRasterLayer === 'undefined') {
+                console.error('Required libraries not loaded. Retrying...');
+                setTimeout(initializeApp, 100);
+                return;
+            }
+
             // Hide loader
             document.getElementById('loader').style.display = 'none';
 
@@ -403,7 +410,16 @@
             document.getElementById('chkAridity').checked = false;
             document.getElementById('chkCropland').checked = false;
             document.getElementById('chkRivers').checked = false;
-        });
+
+            // Initialize dual sliders
+            initDualSlider('slider1', 'min1', 'max1', 'range1');
+            initDualSlider('slider2', 'min2', 'max2', 'range2');
+            initDualSlider('slider3', 'min3', 'max3', 'range3');
+            initDualSlider('slider4', 'min4', 'max4', 'range4');
+        }
+
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
         // Zoom functions
         function zoomToCA() { map.setView([15, -85], 5); }
@@ -463,7 +479,7 @@
                 const arrayBuffer = await response.arrayBuffer();
                 console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
                 
-                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const tiff = await window.GeoTIFF.fromArrayBuffer(arrayBuffer);
                 console.log('TIFF parsed successfully');
                 
                 const image = await tiff.getImage();
@@ -472,14 +488,14 @@
                 const rasterData = await image.readRasters();
                 console.log(`Raster data read: ${rasterData.length} bands`);
                 
-                const georaster = new GeoRaster({
+                const georaster = new window.GeoRaster({
                     georasterData: rasterData,
                     images: [image],
                     crs: 4326
                 });
                 console.log('GeoRaster created');
 
-                dataLayerAridity = new GeoRasterLayer({
+                dataLayerAridity = new window.GeoRasterLayer({
                     georaster: georaster,
                     opacity: 0.6,
                     pixelValuesToColorFn: values => {
@@ -519,7 +535,7 @@
                 const arrayBuffer = await response.arrayBuffer();
                 console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
                 
-                const tiff = await GeoTIFF.fromArrayBuffer(arrayBuffer);
+                const tiff = await window.GeoTIFF.fromArrayBuffer(arrayBuffer);
                 console.log('TIFF parsed successfully');
                 
                 const image = await tiff.getImage();
@@ -528,14 +544,14 @@
                 const rasterData = await image.readRasters();
                 console.log(`Raster data read: ${rasterData.length} bands`);
                 
-                const georaster = new GeoRaster({
+                const georaster = new window.GeoRaster({
                     georasterData: rasterData,
                     images: [image],
                     crs: 4326
                 });
                 console.log('GeoRaster created');
 
-                dataLayerCropland = new GeoRasterLayer({
+                dataLayerCropland = new window.GeoRasterLayer({
                     georaster: georaster,
                     opacity: 0.6,
                     pixelValuesToColorFn: values => {
@@ -674,14 +690,6 @@
             document.addEventListener('mouseup', () => { isMinDragging = false; isMaxDragging = false; });
             updateRange();
         }
-
-        // Initialize all dual sliders
-        document.addEventListener('DOMContentLoaded', function() {
-            initDualSlider('slider1', 'min1', 'max1', 'range1');
-            initDualSlider('slider2', 'min2', 'max2', 'range2');
-            initDualSlider('slider3', 'min3', 'max3', 'range3');
-            initDualSlider('slider4', 'min4', 'max4', 'range4');
-        });
     </script>
 </body>
 </html>
