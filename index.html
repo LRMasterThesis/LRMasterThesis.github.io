@@ -475,10 +475,15 @@
                 const rasterData = await image.readRasters();
                 console.log(`Raster data read: ${rasterData.length} bands`);
                 
+                // Metadaten aus der GeoTIFF auslesen
+                const extent = image.getBoundingBox();  // [xmin, ymin, xmax, ymax]
+                const projection = image.getProjection() || "+proj=longlat +datum=WGS84"; // Fallback zu WGS84
+
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
                     images: [image],
-                    crs: 4326
+                    crs: projection,  // Automatisch aus der Datei
+                    extent: extent    // Automatisch aus der Datei
                 });
                 console.log('GeoRaster created');
 
@@ -531,10 +536,15 @@
                 const rasterData = await image.readRasters();
                 console.log(`Raster data read: ${rasterData.length} bands`);
                 
+                // Metadaten aus der GeoTIFF auslesen
+                const extent = image.getBoundingBox();  // [xmin, ymin, xmax, ymax]
+                const projection = image.getProjection() || "+proj=longlat +datum=WGS84"; // Fallback zu WGS84
+
                 const georaster = new GeoRaster({
                     georasterData: rasterData,
                     images: [image],
-                    crs: 4326
+                    crs: projection,  // Automatisch aus der Datei
+                    extent: extent    // Automatisch aus der Datei
                 });
                 console.log('GeoRaster created');
 
