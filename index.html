@@ -466,21 +466,41 @@
                 const arrayBuffer = await response.arrayBuffer();
                 console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
                 
-                // Einfachste Lösung: parseGeoraster liest ALLES automatisch aus der GeoTIFF!
+                // Einfachste Lösung: parseGeoraster liest ALLES automatisch aus der GeoTIFF
                 const georaster = await parseGeoraster(arrayBuffer);
                 console.log('GeoRaster created');
 
                 dataLayerAridity = new GeoRasterLayer({
                     georaster: georaster,
-                    opacity: 0.6,
+                    opacity: 1,
                     pixelValuesToColorFn: values => {
-                        const value = values[0];
-                        if (value === undefined || value === null) return null;
-                        const normalized = Math.min(1, Math.max(0, value / 255));
-                        const r = Math.floor(210 + normalized * 45);
-                        const g = Math.floor(140 - normalized * 90);
-                        const b = Math.floor(70 - normalized * 70);
-                        return `rgba(${r}, ${g}, ${b}, 0.6)`;
+                        const value = values[0];                                      // Extract the pixel value from the array
+                        if (value === undefined || value === null) return null;     // Return transparent for no-data pixels
+
+                        // Define color stops for linear interpolation
+                        const stops = [
+                            { value: 0.0846696, color: [215, 25, 28] },   // #d7191c
+                            { value: 0.4412237, color: [253, 174, 97] },  // #fdae61
+                            { value: 0.7977779, color: [255, 255, 191] }, // #ffffbf
+                            { value: 1.154332, color: [171, 221, 164] },  // #abdda4
+                            { value: 1.5108862, color: [43, 131, 186] }   // #2b83ba
+                        ];
+
+                        // Find the interval for linear interpolation
+                        if (value <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;          // Use first color for values below the first stop
+                        if (value >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`;  // Use last color for values above the last stop
+
+                        for (let i = 0; i < stops.length - 1; i++) {                     // Loop through color stop intervals
+                            if (value >= stops[i].value && value <= stops[i + 1].value) {  // Check if value falls within current interval
+                                const t = (value - stops[i].value) / (stops[i + 1].value - stops[i].value);  // Calculate interpolation factor (0 to 1)
+                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));  // Interpolate red channel
+                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));  // Interpolate green channel
+                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));  // Interpolate blue channel
+                                return `rgba(${r}, ${g}, ${b}, 1)`;                      // Return interpolated color with full opacity
+                            }
+                        }
+
+                        return null;  // Fallback for any edge cases
                     }
                 }).addTo(map);
                 
@@ -516,15 +536,18 @@
 
                 dataLayerCropland = new GeoRasterLayer({
                     georaster: georaster,
-                    opacity: 0.6,
+                    opacity: 1,
                     pixelValuesToColorFn: values => {
                         const value = values[0];
                         if (value === undefined || value === null) return null;
-                        const normalized = Math.min(1, Math.max(0, value / 255));
-                        const r = Math.floor(190 - normalized * 140);
-                        const g = Math.floor(170 + normalized * 70);
-                        const b = Math.floor(90 - normalized * 90);
-                        return `rgba(${r}, ${g}, ${b}, 0.6)`;
+
+                        // Map specific values to colors, everything else transparent
+                        if (value === 10) return '#07cc31';
+                        if (value === 11) return '#008615';
+                        if (value === 12) return '#00620f';
+                        if (value === 20) return '#007c86';
+
+                        return null; // fully transparent for all other values
                     }
                 }).addTo(map);
                 
