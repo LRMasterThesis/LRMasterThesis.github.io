@@ -459,7 +459,7 @@
             if (dataLayerAridity) return; // already added
             try {
                 console.log('Starting to load Aridity layer...');
-                const response = await fetch('Data/Aridity%20Index.tif');
+                const response = await fetch('Data/Aridity Index.tif');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 console.log('Response received, reading as array buffer...');
