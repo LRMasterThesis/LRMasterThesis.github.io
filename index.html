@@ -195,7 +195,38 @@
         .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
         .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
         .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
-        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgb[...]
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.5); }
+
+        /* Layer opacity sliders */
+        .layer-slider {
+            width: 80px;
+            height: 4px;
+            margin-left: 10px;
+            vertical-align: middle;
+            -webkit-appearance: none;
+            background: #ddd;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .layer-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2b83ba;
+            cursor: pointer;
+        }
+
+        .layer-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2b83ba;
+            cursor: pointer;
+            border: none;
+        }
 
         /* make sure map controls and modal don't get hidden by body overflow */
         #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
@@ -279,10 +310,14 @@
                         <label class="data-option">
                             <input type="checkbox" id="chkAridity" onchange="toggleDataLayer('aridity')">
                             <span>Aridity Index</span>
+                            <input type="range" id="sliderAridity" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('aridity', this.value)">
                         </label>
                         <label class="data-option">
                             <input type="checkbox" id="chkCropland" onchange="toggleDataLayer('cropland')">
                             <span>Cropland</span>
+                            <input type="range" id="sliderCropland" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('cropland', this.value)">
                         </label>
                         <label class="data-option">
                             <input type="checkbox" id="chkRivers" onchange="toggleDataLayer('rivers')">
@@ -381,6 +416,10 @@
         let dataLayerCropland = null;
         let dataLayerRivers = null;
 
+        // Opacity values (0-100 for slider, converted to 0-1 for layers)
+        let aridityOpacity = 100;
+        let croplandOpacity = 100;
+
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Hide loader
@@ -454,6 +493,19 @@
             }
         }
 
+        // Update layer opacity based on slider value
+        function updateLayerOpacity(layerId, value) {
+            const opacity = value / 100;
+
+            if (layerId === 'aridity' && dataLayerAridity) {
+                aridityOpacity = value;
+                dataLayerAridity.setOpacity(opacity);
+            } else if (layerId === 'cropland' && dataLayerCropland) {
+                croplandOpacity = value;
+                dataLayerCropland.setOpacity(opacity);
+            }
+        }
+
         // Load and display GeoTIFF raster data using GeoRaster library
         async function addAridityLayer() {
             if (dataLayerAridity) return; // already added
@@ -472,7 +524,7 @@
 
                 dataLayerAridity = new GeoRasterLayer({
                     georaster: georaster,
-                    opacity: 1,
+                    opacity: aridityOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];                                      // Extract the pixel value from the array
                         if (value === undefined || value === null) return null;     // Return transparent for no-data pixels
@@ -517,6 +569,7 @@
             console.log('Removing Aridity layer');
             map.removeLayer(dataLayerAridity);
             dataLayerAridity = null;
+            document.getElementById('sliderAridity').value = aridityOpacity;
         }
 
         async function addCroplandLayer() {
@@ -536,7 +589,7 @@
 
                 dataLayerCropland = new GeoRasterLayer({
                     georaster: georaster,
-                    opacity: 1,
+                    opacity: croplandOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];
                         if (value === undefined || value === null) return null;
@@ -564,6 +617,7 @@
             console.log('Removing Cropland layer');
             map.removeLayer(dataLayerCropland);
             dataLayerCropland = null;
+            document.getElementById('sliderCropland').value = croplandOpacity;
         }
 
         // Load GeoJSON Rivers layer
