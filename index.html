@@ -527,7 +527,7 @@
                     opacity: aridityOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];                                      // Extract the pixel value from the array
-                        if (value === undefined || value === null) return null;     // Return transparent for no-data pixels
+                        if (value === undefined || value === null || isNaN(value)) return null;     // Return transparent for no-data pixels
 
                         // Define color stops for linear interpolation
                         const stops = [
