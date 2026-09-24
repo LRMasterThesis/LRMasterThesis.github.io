@@ -524,7 +524,7 @@
 
                 dataLayerAridity = new GeoRasterLayer({
                     georaster: georaster,
-                    resolution: 512,
+                    resolution: 256,
                     opacity: aridityOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];                                      // Extract the pixel value from the array
@@ -590,7 +590,7 @@
 
                 dataLayerCropland = new GeoRasterLayer({
                     georaster: georaster,
-                    resolution: 512,
+                    resolution: 256,
                     opacity: croplandOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];
