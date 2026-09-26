@@ -415,10 +415,6 @@
         let dataLayerAridity = null;
         let dataLayerCropland = null;
         let dataLayerRivers = null;
-
-        // Cache keys für raster layers, damit layer in separaten caches gespeichert werden und keine layer ausversehen aus dem falschen Cache geladen werden
-        const ARIDITY_CACHE_KEY = 'aridity-raster-layer';
-        const CROPLAND_CACHE_KEY = 'cropland-raster-layer';
         
         // Opacity values (0-100 for slider, converted to 0-1 for layers)
         let aridityOpacity = 100;
@@ -530,7 +526,6 @@
                     georaster: georaster,
                     resolution: 256,
                     opacity: aridityOpacity / 100,
-                    cacheKey: ARIDITY_CACHE_KEY,
                     pixelValuesToColorFn: values => {
                         const value = values[0];                                      // Extract the pixel value from the array
                         if (value === undefined || value === null || value === -3.4028230607370965e+38) return null;     // Return transparent for no-data pixels
@@ -597,7 +592,6 @@
                     georaster: georaster,
                     resolution: 256,
                     opacity: croplandOpacity / 100,
-                    cacheKey: CROPLAND_CACHE_KEY,
                     pixelValuesToColorFn: values => {
                         const value = values[0];
                         if (value === undefined || value === null) return null;
