@@ -314,12 +314,14 @@
                         <label class="data-option">
                             <input type="checkbox" id="chkAridity" onchange="toggleDataLayer('aridity')">
                             <span>Aridity Index</span>
-                            <input type="range" id="sliderAridity" ... class="layer-slider" ...>
+                            <input type="range" id="sliderAridity" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('aridity', this.value)">
                         </label>
                         <label class="data-option">
                             <input type="checkbox" id="chkCropland" onchange="toggleDataLayer('cropland')">
                             <span>Cropland</span>
-                            <input type="range" id="sliderCropland" ... class="layer-slider" ...>
+                            <input type="range" id="sliderCropland" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('cropland', this.value)">
                         </label>
                     </div>
                 </div>
