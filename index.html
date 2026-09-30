@@ -40,8 +40,8 @@
 
         /* Top bar (12.5% height) */
         #top-bar {
-            position: relative;
-            z-index: 1200;
+            position: relative; /* ensure z-index creates stacking context */
+            z-index: 1200;      /* on top of filter panel */
             height: 12.5vh;
             background-color: var(--dark-green);
             color: white;
@@ -135,7 +135,7 @@
             border-radius: 6px;
             padding: 5px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            z-index: 1210;
+            z-index: 1210; /* above top-bar when open */
             width: 220px;
             white-space: nowrap;
         }
@@ -146,13 +146,14 @@
 
         .data-option input[type="checkbox"] { margin-right:8px; }
 
-        /* Modal styles */
+        /* Modal styles (single definition) */
         .modal-content { background-color: var(--dark-green); color: white; }
         .modal-header, .modal-body { border-color: var(--light-grey); }
         .modal-title { color: white; }
         .close { color: white; }
 
-        /* Filter Panel Styles */
+
+        /* Filter Panel Styles - move container instead of panel */
         .filter-panel-container {
             position: absolute;
             top: 0vh;
@@ -162,6 +163,7 @@
             transform: translateY(0);
         }
 
+        /* closed state: move container up so only header is visible */
         .filter-panel-container.closed {
             transform: translateY(calc(-100% + 30px));
         }
@@ -183,6 +185,7 @@
         .filter-toggle { display:flex; align-items:center; gap:8px; }
         .filter-arrow { color:white; font-size:0.8em; transition: transform .25s ease-in-out; display:inline-block;}
 
+        /* rotate arrows when panel is closed */
         .filter-panel-container:not(.closed) .filter-arrow { transform: rotate(180deg); }
 
         .filter-content { padding:10px; }
@@ -194,34 +197,16 @@
         .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
         .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.5); }
 
-        .data-option {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            width: 100%;
-            padding: 6px 0;
-        }
-
-        .data-option-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 0;
-        }
-
+        /* Layer opacity sliders */
         .layer-slider {
-            width: 60px;
+            width: 80px;
             height: 4px;
-            margin-left: 8px;
+            margin-left: 10px;
             vertical-align: middle;
             -webkit-appearance: none;
-            appearance: none;
             background: #ddd;
             border-radius: 2px;
             outline: none;
-            flex-shrink: 0;
         }
 
         .layer-slider::-webkit-slider-thumb {
@@ -243,11 +228,13 @@
             border: none;
         }
 
+        /* make sure map controls and modal don't get hidden by body overflow */
         #map-container, .map-controls, .filter-panel-container, .modal { pointer-events: auto; }
     </style>
 </head>
 
 <body>
+    <!-- Top Bar -->
     <div id="top-bar">
         <div id="title-text">Kenyan River Suitability - Master Thesis by Luis Rother</div>
         <div id="top-buttons">
@@ -274,7 +261,9 @@
         </div>
     </div>
 
+    <!-- Main Container -->
     <div id="main-container">
+        <!-- Left Sidebar with Placeholders -->
         <div id="sidebar">
             <div class="chart-placeholder full-width">Apprehensions by Date</div>
             <div class="chart-placeholder full-width">Apprehensions by Month</div>
@@ -290,6 +279,7 @@
             <div class="chart-placeholder">Fatalities by Event Type</div>
         </div>
 
+        <!-- Map Container -->
         <div id="map-container">
             <div id="loader" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
                 <h4><i class="fas fa-cog fa-spin"></i> Loading map...</h4>
@@ -318,39 +308,24 @@
                     </button>
                     <div class="data-options" id="dataOptions">
                         <label class="data-option">
-                            <div class="data-option-label">
-                                <input type="checkbox" id="chkRivers" onchange="toggleDataLayer('rivers')">
-                                <span>Rivers</span>
-                            </div>
-                        </label>
-                        <label class="data-option">
-                            <div class="data-option-label">
-                                <input type="checkbox" id="chkAridity" onchange="toggleDataLayer('aridity')">
-                                <span>Aridity Index</span>
-                            </div>
+                            <input type="checkbox" id="chkAridity" onchange="toggleDataLayer('aridity')">
+                            <span>Aridity Index</span>
                             <input type="range" id="sliderAridity" min="0" max="100" value="100" class="layer-slider"
                                    oninput="updateLayerOpacity('aridity', this.value)">
                         </label>
                         <label class="data-option">
-                            <div class="data-option-label">
-                                <input type="checkbox" id="chkCropland" onchange="toggleDataLayer('cropland')">
-                                <span>Cropland</span>
-                            </div>
+                            <input type="checkbox" id="chkCropland" onchange="toggleDataLayer('cropland')">
+                            <span>Cropland</span>
                             <input type="range" id="sliderCropland" min="0" max="100" value="100" class="layer-slider"
                                    oninput="updateLayerOpacity('cropland', this.value)">
                         </label>
                         <label class="data-option">
-                            <div class="data-option-label">
-                                <input type="checkbox" id="chkPopulation" onchange="toggleDataLayer('population')">
-                                <span>Population</span>
-                            </div>
-                            <input type="range" id="sliderPopulation" min="0" max="100" value="100" class="layer-slider"
-                                   oninput="updateLayerOpacity('population', this.value)">
+                            <input type="checkbox" id="chkRivers" onchange="toggleDataLayer('rivers')">
+                            <span>Rivers</span>
                         </label>
                     </div>
                 </div>
             </div>
-
             <div class="filter-panel-container closed" id="filterPanelContainer">
                 <div class="filter-panel">
                     <div class="filter-content">
@@ -403,6 +378,9 @@
         </div>
     </div>
 
+
+
+    <!-- Info Modal -->
     <div class="modal fade" id="info-modal" role="dialog">
         <div class="modal-dialog modal-md">
             <div class="modal-content">
@@ -421,72 +399,64 @@
         </div>
     </div>
 
+    <!-- JavaScript Libraries (CDNs) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
     <script>
+        // Global map and layer variables
         let map;
         let osmLayer;
         let satelliteLayer;
 
+        // Data layer variables
         let dataLayerAridity = null;
         let dataLayerCropland = null;
         let dataLayerRivers = null;
-        let dataLayerPopulation = null;
-
+        
+        // Opacity values (0-100 for slider, converted to 0-1 for layers)
         let aridityOpacity = 100;
         let croplandOpacity = 100;
-        let populationOpacity = 100;
 
-        function reorderDataLayers() {
-            const activeLayers = [];
-            if (dataLayerCropland) activeLayers.push(dataLayerCropland);
-            if (dataLayerAridity) activeLayers.push(dataLayerAridity);
-            if (dataLayerPopulation) activeLayers.push(dataLayerPopulation);
-            if (dataLayerRivers) activeLayers.push(dataLayerRivers);
-
-            activeLayers.forEach(layer => {
-                if (map.hasLayer(layer)) {
-                    map.removeLayer(layer);
-                }
-            });
-
-            activeLayers.forEach(layer => {
-                map.addLayer(layer);
-            });
-        }
-
+        // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Hide loader
             document.getElementById('loader').style.display = 'none';
 
+            // Initialize Leaflet map centered at 0.47°, 37.72° at zoom level 7
             map = L.map('map', {
-                zoomSnap: 0,
-                zoomDelta: 1.5
+                zoomSnap: 0,  // Allow fractional zoom levels like 6.5
+                zoomDelta: 1.5   // Zoom increment by 1 per scroll
             }).setView([0.05, 38.22], 6.5);
 
+            // Add OpenStreetMap basemap (default)
             osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
 
+            // Add Satellite basemap (hidden by default)
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             });
 
-            document.getElementById('chkRivers').checked = false;
+            // Initialize any UI state for checkboxes
             document.getElementById('chkAridity').checked = false;
             document.getElementById('chkCropland').checked = false;
-            document.getElementById('chkPopulation').checked = false;
+            document.getElementById('chkRivers').checked = false;
         });
 
+        // Zoom functions
         function zoomToCA() { map.setView([15, -85], 5); }
         function zoomToWA() { map.setView([10, 0], 4); }
         function zoomToRegions() { map.setView([10, -40], 3); }
 
+        // Basemap functions
         function toggleBasemapSelector() {
             const options = document.getElementById('basemapOptions');
             options.classList.toggle('show');
+            // close data options if open
             document.getElementById('dataOptions').classList.remove('show');
         }
 
@@ -501,12 +471,15 @@
             document.getElementById('basemapOptions').classList.remove('show');
         }
 
+        // Data layers UI functions
         function toggleDataSelector() {
             const options = document.getElementById('dataOptions');
             options.classList.toggle('show');
+            // close basemap options if open
             document.getElementById('basemapOptions').classList.remove('show');
         }
 
+        // Toggle data layers based on checkbox state
         function toggleDataLayer(id) {
             if (id === 'aridity') {
                 const chk = document.getElementById('chkAridity');
@@ -517,13 +490,10 @@
             } else if (id === 'rivers') {
                 const chk = document.getElementById('chkRivers');
                 if (chk.checked) addRiversLayer(); else removeRiversLayer();
-            } else if (id === 'population') {
-                const chk = document.getElementById('chkPopulation');
-                if (chk.checked) addPopulationLayer(); else removePopulationLayer();
             }
-            reorderDataLayers();
         }
 
+        // Update layer opacity based on slider value
         function updateLayerOpacity(layerId, value) {
             const opacity = value / 100;
 
@@ -533,53 +503,61 @@
             } else if (layerId === 'cropland' && dataLayerCropland) {
                 croplandOpacity = value;
                 dataLayerCropland.setOpacity(opacity);
-            } else if (layerId === 'population' && dataLayerPopulation) {
-                populationOpacity = value;
-                dataLayerPopulation.setOpacity(opacity);
             }
         }
 
+        // Load and display GeoTIFF raster data using GeoRaster library
         async function addAridityLayer() {
-            if (dataLayerAridity) return;
+            if (dataLayerAridity) return; // already added
             try {
+                console.log('Starting to load Aridity layer...');
                 const response = await fetch('Data/Aridity_Index.tif');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
+                
+                console.log('Response received, reading as array buffer...');
                 const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+                
+                // Einfachste Lösung: parseGeoraster liest ALLES automatisch aus der GeoTIFF
                 const georaster = await parseGeoraster(arrayBuffer);
+                console.log('GeoRaster created');
 
                 dataLayerAridity = new GeoRasterLayer({
                     georaster: georaster,
                     resolution: 256,
                     opacity: aridityOpacity / 100,
                     pixelValuesToColorFn: values => {
-                        const value = values[0];
-                        if (value === undefined || value === null || value === -3.4028230607370965e+38) return null;
+                        const value = values[0];                                      // Extract the pixel value from the array
+                        if (value === undefined || value === null || value === -3.4028230607370965e+38) return null;     // Return transparent for no-data pixels
 
+                        // Define color stops for linear interpolation
                         const stops = [
-                            { value: 0.0846696, color: [215, 25, 28] },
-                            { value: 0.4412237, color: [253, 174, 97] },
-                            { value: 0.7977779, color: [255, 255, 191] },
-                            { value: 1.154332, color: [171, 221, 164] },
-                            { value: 1.5108862, color: [43, 131, 186] }
+                            { value: 0.0846696, color: [215, 25, 28] },   // #d7191c
+                            { value: 0.4412237, color: [253, 174, 97] },  // #fdae61
+                            { value: 0.7977779, color: [255, 255, 191] }, // #ffffbf
+                            { value: 1.154332, color: [171, 221, 164] },  // #abdda4
+                            { value: 1.5108862, color: [43, 131, 186] }   // #2b83ba
                         ];
 
-                        if (value <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;
-                        if (value >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`;
+                        // Find the interval for linear interpolation
+                        if (value <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;          // Use first color for values below the first stop
+                        if (value >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`;  // Use last color for values above the last stop
 
-                        for (let i = 0; i < stops.length - 1; i++) {
-                            if (value >= stops[i].value && value <= stops[i + 1].value) {
-                                const t = (value - stops[i].value) / (stops[i + 1].value - stops[i].value);
-                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
-                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
-                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
-                                return `rgba(${r}, ${g}, ${b}, 1)`;
+                        for (let i = 0; i < stops.length - 1; i++) {                     // Loop through color stop intervals
+                            if (value >= stops[i].value && value <= stops[i + 1].value) {  // Check if value falls within current interval
+                                const t = (value - stops[i].value) / (stops[i + 1].value - stops[i].value);  // Calculate interpolation factor (0 to 1)
+                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));  // Interpolate red channel
+                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));  // Interpolate green channel
+                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));  // Interpolate blue channel
+                                return `rgba(${r}, ${g}, ${b}, 1)`;                      // Return interpolated color with full opacity
                             }
                         }
 
-                        return null;
+                        return null;  // Fallback for any edge cases
                     }
                 }).addTo(map);
+                
+                console.log('Aridity layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Aridity layer:', error);
                 document.getElementById('chkAridity').checked = false;
@@ -589,19 +567,26 @@
 
         function removeAridityLayer() {
             if (!dataLayerAridity) return;
+            console.log('Removing Aridity layer');
             map.removeLayer(dataLayerAridity);
             dataLayerAridity = null;
             document.getElementById('sliderAridity').value = aridityOpacity;
         }
 
         async function addCroplandLayer() {
-            if (dataLayerCropland) return;
+            if (dataLayerCropland) return; // already added
             try {
+                console.log('Starting to load Cropland layer...');
                 const response = await fetch('Data/Cropland.tif');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
+                
+                console.log('Response received, reading as array buffer...');
                 const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+                
+                // Einfachste Lösung: parseGeoraster liest ALLES automatisch aus der GeoTIFF!
                 const georaster = await parseGeoraster(arrayBuffer);
+                console.log('GeoRaster created (Cropland)');
 
                 dataLayerCropland = new GeoRasterLayer({
                     georaster: georaster,
@@ -611,14 +596,17 @@
                         const value = values[0];
                         if (value === undefined || value === null) return null;
 
+                        // Map specific values to colors, everything else transparent
                         if (value === 10) return '#07cc31';
                         if (value === 11) return '#008615';
                         if (value === 12) return '#00620f';
                         if (value === 20) return '#007c86';
 
-                        return null;
+                        return null; // fully transparent for all other values
                     }
                 }).addTo(map);
+                
+                console.log('Cropland layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Cropland layer:', error);
                 document.getElementById('chkCropland').checked = false;
@@ -628,19 +616,23 @@
 
         function removeCroplandLayer() {
             if (!dataLayerCropland) return;
+            console.log('Removing Cropland layer');
             map.removeLayer(dataLayerCropland);
             dataLayerCropland = null;
             document.getElementById('sliderCropland').value = croplandOpacity;
         }
 
+        // Load GeoJSON Rivers layer
         async function addRiversLayer() {
-            if (dataLayerRivers) return;
+            if (dataLayerRivers) return; // already added
             try {
+                console.log('Starting to load Rivers layer...');
                 const response = await fetch('Data/Rivers.geojson');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
+                
                 const geojsonData = await response.json();
-
+                console.log('GeoJSON parsed successfully');
+                
                 dataLayerRivers = L.geoJSON(geojsonData, {
                     style: {
                         color: '#2b8cbe',
@@ -658,6 +650,8 @@
                         }
                     }
                 }).addTo(map);
+                
+                console.log('Rivers layer added to map successfully');
             } catch (error) {
                 console.error('Error loading Rivers layer:', error);
                 document.getElementById('chkRivers').checked = false;
@@ -667,65 +661,12 @@
 
         function removeRiversLayer() {
             if (!dataLayerRivers) return;
+            console.log('Removing Rivers layer');
             map.removeLayer(dataLayerRivers);
             dataLayerRivers = null;
         }
 
-        async function addPopulationLayer() {
-            if (dataLayerPopulation) return;
-            try {
-                const response = await fetch('Data/Population.tif');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-                const arrayBuffer = await response.arrayBuffer();
-                const georaster = await parseGeoraster(arrayBuffer);
-
-                dataLayerPopulation = new GeoRasterLayer({
-                    georaster: georaster,
-                    resolution: 256,
-                    opacity: populationOpacity / 100,
-                    pixelValuesToColorFn: values => {
-                        const value = values[0];
-                        if (value === undefined || value === null || value === -3.4028230607370965e+38) return null;
-
-                        const stops = [
-                            { value: 0, color: [255, 255, 255] },
-                            { value: 50, color: [255, 255, 178] },
-                            { value: 100, color: [254, 204, 92] },
-                            { value: 200, color: [253, 141, 60] },
-                            { value: 500, color: [227, 26, 28] }
-                        ];
-
-                        if (value <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;
-                        if (value >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`;
-
-                        for (let i = 0; i < stops.length - 1; i++) {
-                            if (value >= stops[i].value && value <= stops[i + 1].value) {
-                                const t = (value - stops[i].value) / (stops[i + 1].value - stops[i].value);
-                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
-                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
-                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
-                                return `rgba(${r}, ${g}, ${b}, 1)`;
-                            }
-                        }
-
-                        return null;
-                    }
-                }).addTo(map);
-            } catch (error) {
-                console.error('Error loading Population layer:', error);
-                document.getElementById('chkPopulation').checked = false;
-                alert('Failed to load Population layer: ' + error.message);
-            }
-        }
-
-        function removePopulationLayer() {
-            if (!dataLayerPopulation) return;
-            map.removeLayer(dataLayerPopulation);
-            dataLayerPopulation = null;
-            document.getElementById('sliderPopulation').value = populationOpacity;
-        }
-
+        // Close option panels when clicking outside
         document.addEventListener('click', function(event) {
             const basemapSelector = document.querySelector('.basemap-selector');
             const basemapOptions = document.getElementById('basemapOptions');
@@ -739,19 +680,23 @@
             }
         });
 
+        // Filter panel toggle - now moves the container
         function toggleFilterPanel() {
             const container = document.getElementById('filterPanelContainer');
             const text = document.getElementById('filterText');
 
             if (container.classList.contains('closed')) {
+                // Container was closed -> open it
                 container.classList.remove('closed');
                 text.textContent = 'Close Filters';
             } else {
+                // Container was open -> close it, leaving only header visible
                 container.classList.add('closed');
                 text.textContent = 'Filters';
             }
         }
 
+        // Dual slider functionality
         function initDualSlider(sliderId, minId, maxId, rangeId) {
             const slider = document.getElementById(sliderId);
             const minThumb = document.getElementById(minId);
@@ -788,6 +733,7 @@
             updateRange();
         }
 
+        // Initialize all dual sliders
         document.addEventListener('DOMContentLoaded', function() {
             initDualSlider('slider1', 'min1', 'max1', 'range1');
             initDualSlider('slider2', 'min2', 'max2', 'range2');
