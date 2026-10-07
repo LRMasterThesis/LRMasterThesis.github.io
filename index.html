@@ -23,6 +23,9 @@
     <script src="https://unpkg.com/georaster@1.5.5/dist/georaster.browser.bundle.min.js"></script>
     <script src="https://unpkg.com/georaster-layer-for-leaflet@4.1.2/dist/georaster-layer-for-leaflet.min.js"></script>
 
+    <!-- Chroma.js for color mapping -->
+    <script src="https://chroma.js.org/chroma.min.js"></script>
+
     <style>
         /* Reset / base */
         body {
@@ -195,7 +198,7 @@
         .dual-slider { position:relative; width:100%; height:4px; background:#444; border-radius:2px; }
         .dual-slider-track { position:absolute; height:4px; background:#444; border-radius:2px; width:100%; top:50%; transform:translateY(-50%); }
         .dual-slider-range { position:absolute; height:4px; background:#888; border-radius:2px; z-index:1; }
-        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2px rgba(0,0,0,0.5); }
+        .dual-slider-thumb { position:absolute; width:14px; height:14px; border-radius:50%; background:white; cursor:pointer; top:50%; transform:translate(-50%,-50%); z-index:2; box-shadow:0 0 2p[...]
 
         /*Möglichkeit für Zeilenumbruch etablieren*/
         .data-option span {
@@ -693,7 +696,7 @@
         }
 
 
-        //Load Population layer
+        //Load Population layer with Magma color ramp
         async function addPopulationLayer() {
             if (dataLayerPopulation) return;
             try {
@@ -708,6 +711,9 @@
                 const georaster = await parseGeoraster(arrayBuffer);
                 console.log('GeoRaster created');
 
+                // Initialize Chroma scale with Magma
+                const magmaScale = chroma.scale('magma');
+
                 dataLayerPopulation = new GeoRasterLayer({
                     georaster: georaster,
                     resolution: 256,
@@ -715,36 +721,14 @@
                     pixelValuesToColorFn: values => {
                         const value = values[0];
                         if (value === undefined || value === null || value === -99999) return null;
-                        // Inverse Magma ramp: light yellow/cream at low values,
-                        // dark purple/black at high values
+
+                        // Normalize value to 0-1 range
                         const normalized = Math.min(Math.max(value / 100, 0), 1);
-                        const stops = [
-                            { value: 0.00, color: [252, 253, 191] }, // #fcfdbf
-                            { value: 0.125, color: [251, 182, 26] }, // #fbb61a
-                            { value: 0.25, color: [237, 105, 37] }, // #ed6925
-                            { value: 0.375, color: [207, 68, 70] }, // #cf4446
-                            { value: 0.50, color: [165, 44, 96] }, // #a52c60
-                            { value: 0.625, color: [120, 28, 109] }, // #781c6d
-                            { value: 0.75, color: [74, 12, 107] }, // #4a0c6b
-                            { value: 0.875, color: [27, 12, 65] }, // #1b0c41
-                            { value: 1.00, color: [0, 0, 4] }      // #000004
-                        ];
-
-                        if (normalized <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;
-                        if (normalized >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`;
-
-                        for (let i = 0; i < stops.length - 1; i++) {
-                            if (normalized >= stops[i].value && normalized <= stops[i + 1].value) {
-                                const t = (normalized - stops[i].value) / (stops[i + 1].value - stops[i].value);
-                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
-                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
-                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
-                                return `rgba(${r}, ${g}, ${b}, 1)`;
-                            }
-                        }
-
-                        return null;
-}
+                        
+                        // Get color from Chroma's Magma scale
+                        const color = magmaScale(normalized).hex();
+                        return color;
+                    }
                 });
 
                 dataLayerPopulation.cache = {};
