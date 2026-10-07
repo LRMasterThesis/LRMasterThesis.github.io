@@ -715,18 +715,32 @@
                     pixelValuesToColorFn: values => {
                         const value = values[0];
                         if (value === undefined || value === null || value === -99999) return null;
-
+                        // Inverse Magma ramp: light yellow/cream at low values,
+                        // dark purple/black at high values
                         const normalized = Math.min(Math.max(value / 100, 0), 1);
-                        const start = [252, 253, 191]; // #fcfdbf
-                        const end = [0, 0, 4];        // #000004
+                        const stops = [
+                            { value: 0.0, color: [252, 253, 191] },  // #fcfdbf
+                            { value: 0.25, color: [254, 200, 106] }, // #fec86a
+                            { value: 0.5, color: [253, 119, 71] },   // #fd7747
+                            { value: 0.75, color: [189, 60, 109] },  // #bd3c6d
+                            { value: 1.0, color: [0, 0, 4] }      // #000004
+                        ];
 
-                        const r = Math.round(start[0] + normalized * (end[0] - start[0]));
-                        const g = Math.round(start[1] + normalized * (end[1] - start[1]));
-                        const b = Math.round(start[2] + normalized * (end[2] - start[2]));
+                        if (normalized <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;
+                        if (normalized >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`;
 
-                        // Return interpolated color with full opacity
-                        return `rgba(${r}, ${g}, ${b}, 1)`;
-                    }
+                        for (let i = 0; i < stops.length - 1; i++) {
+                            if (normalized >= stops[i].value && normalized <= stops[i + 1].value) {
+                                const t = (normalized - stops[i].value) / (stops[i + 1].value - stops[i].value);
+                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
+                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
+                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
+                                return `rgba(${r}, ${g}, ${b}, 1)`;
+                            }
+                        }
+
+                        return null;
+}
                 });
 
                 dataLayerPopulation.cache = {};
