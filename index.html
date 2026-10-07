@@ -524,7 +524,7 @@
 
                 dataLayerAridity = new GeoRasterLayer({
                     georaster: georaster,
-                    resolution: 128,
+                    resolution: 256,
                     opacity: aridityOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];                                      // Extract the pixel value from the array
@@ -555,7 +555,9 @@
 
                         return null;  // Fallback for any edge cases
                     }
-                }).addTo(map);
+                });
+                dataLayerAridity.cache = {};
+                dataLayerAridity.addTo(map);
                 
                 console.log('Aridity layer added to map successfully');
             } catch (error) {
@@ -604,7 +606,9 @@
 
                         return null; // fully transparent for all other values
                     }
-                }).addTo(map);
+                });
+                dataLayerCropland.cache = {};
+                dataLayerCropland.addTo(map);
                 
                 console.log('Cropland layer added to map successfully');
             } catch (error) {
