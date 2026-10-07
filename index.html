@@ -713,7 +713,7 @@
                     opacity: populationOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];
-                        if (value === undefined || value === null) return null;
+                        if (value === undefined || value === null || value === -99999) return null;
 
                         const normalized = Math.min(Math.max(value / 100, 0), 1);
                         const start = [252, 253, 191]; // #fcfdbf
