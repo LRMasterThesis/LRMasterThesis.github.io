@@ -719,11 +719,15 @@
                         // dark purple/black at high values
                         const normalized = Math.min(Math.max(value / 100, 0), 1);
                         const stops = [
-                            { value: 0.0, color: [252, 253, 191] },  // #fcfdbf
-                            { value: 0.25, color: [254, 200, 106] }, // #fec86a
-                            { value: 0.5, color: [253, 119, 71] },   // #fd7747
-                            { value: 0.75, color: [189, 60, 109] },  // #bd3c6d
-                            { value: 1.0, color: [0, 0, 4] }      // #000004
+                            { value: 0.00, color: [252, 253, 191] }, // #fcfdbf
+                            { value: 0.125, color: [251, 182, 26] }, // #fbb61a
+                            { value: 0.25, color: [237, 105, 37] }, // #ed6925
+                            { value: 0.375, color: [207, 68, 70] }, // #cf4446
+                            { value: 0.50, color: [165, 44, 96] }, // #a52c60
+                            { value: 0.625, color: [120, 28, 109] }, // #781c6d
+                            { value: 0.75, color: [74, 12, 107] }, // #4a0c6b
+                            { value: 0.875, color: [27, 12, 65] }, // #1b0c41
+                            { value: 1.00, color: [0, 0, 4] }      // #000004
                         ];
 
                         if (normalized <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;
