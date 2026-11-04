@@ -757,15 +757,12 @@
                                 return `rgba(${r}, ${g}, ${b}, 1)`;
                             }
                         }
-
                         return null;
                     }
                 });
-
                 dataLayerPopulation.cache = {};
                 dataLayerPopulation.addTo(map);
                 console.log('Population layer added to map successfully');
-
             } catch (error) {
                 console.error('Error loading Population layer:', error);
                 document.getElementById('chkPopulation').checked = false;
@@ -782,37 +779,12 @@
         }
 
 
-        //Color ramp for the drinking water deprivation rate (0-1)
-        function deprivationColor(rate) {
-            if (rate === undefined || rate === null) return '#cccccc';
-            const stops = [
-                { value: 0.0, color: [255, 255, 178] },  // low deprivation
-                { value: 0.2, color: [254, 204, 92] },
-                { value: 0.4, color: [253, 141, 60] },
-                { value: 0.6, color: [240, 59, 32] },
-                { value: 0.8, color: [189, 0, 38] },
-                { value: 1.0, color: [128, 0, 38] }       // high deprivation
-            ];
-            if (rate <= stops[0].value) return `rgb(${stops[0].color.join(',')})`;
-            if (rate >= stops[stops.length - 1].value) return `rgb(${stops[stops.length - 1].color.join(',')})`;
-            for (let i = 0; i < stops.length - 1; i++) {
-                if (rate >= stops[i].value && rate <= stops[i + 1].value) {
-                    const t = (rate - stops[i].value) / (stops[i + 1].value - stops[i].value);
-                    const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
-                    const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
-                    const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
-                    return `rgb(${r}, ${g}, ${b})`;
-                }
-            }
-            return '#cccccc';
-        }
-
-        //Load GeoJSON Deprivation layer
+        // Load Drinking Water Deprivation layer
         async function addDeprivationLayer() {
             if (dataLayerDeprivation) return; // already added
             try {
                 console.log('Starting to load Deprivation layer...');
-                const response = await fetch('Data/Deprivation_rate_in_Drinking_water.geojson');
+                const response = await fetch('Data/Deprivation%20rate%20in%20Drinking%20water.geojson');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                 const geojsonData = await response.json();
@@ -821,11 +793,23 @@
                 dataLayerDeprivation = L.geoJSON(geojsonData, {
                     style: function(feature) {
                         const rate = feature.properties ? feature.properties.dep_infra_impw : null;
+
+                        // Classified color scheme for the deprivation rate (0.1–0.7)
+                        let fillColor = '#cccccc'; // no data
+                        if (rate !== undefined && rate !== null) {
+                            if (rate < 0.2)      fillColor = '#fff5f0';   // 0.1–0.2
+                            else if (rate < 0.3) fillColor = '#fdccb8';  // 0.2–0.3
+                            else if (rate < 0.4) fillColor = '#fc8f6f';  // 0.3–0.4
+                            else if (rate < 0.5) fillColor = '#f44d38';  // 0.4–0.5
+                            else if (rate < 0.6) fillColor = '#c5161c';  // 0.5–0.6
+                            else                 fillColor = '#67000d';  // 0.6–0.7
+                        }
+
                         return {
                             color: '#ffffff',
                             weight: 1,
                             opacity: 1,
-                            fillColor: deprivationColor(rate),
+                            fillColor: fillColor,
                             fillOpacity: deprivationOpacity / 100
                         };
                     },
