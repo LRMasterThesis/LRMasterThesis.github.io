@@ -813,7 +813,7 @@
                             fillOpacity: deprivationOpacity / 100
                         };
                     },
-                    onEachFeature: function(feature, layer) {
+                    onEachFeature: function(feature, layer) {        //Adds the popup when clicking on a feature, including County name and deprivation percentage
                         const p = feature.properties || {};
                         let popupContent = `<div><strong>${p.geo_name || 'Unknown county'}</strong><br>`;
                         if (p.dep_infra_impw !== undefined && p.dep_infra_impw !== null) {
