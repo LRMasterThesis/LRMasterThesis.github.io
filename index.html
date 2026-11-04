@@ -784,7 +784,7 @@
             if (dataLayerDeprivation) return; // already added
             try {
                 console.log('Starting to load Deprivation layer...');
-                const response = await fetch('Data/Deprivation%20rate%20in%20Drinking%20water.geojson');
+                const response = await fetch('Data/Deprivation_rate_in_Drinking_water.geojson');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                 const geojsonData = await response.json();
