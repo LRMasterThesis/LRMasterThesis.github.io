@@ -330,6 +330,12 @@
                             <input type="range" id="sliderCropland" min="0" max="100" value="100" class="layer-slider"
                                    oninput="updateLayerOpacity('cropland', this.value)">
                         </label>
+                        <label class="data-option">
+                            <input type="checkbox" id="chkPopulation" onchange="toggleDataLayer('population')">
+                            <span>Population</span>
+                            <input type="range" id="sliderPopulation" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('population', this.value)">
+                        </label>
                     </div>
                 </div>
             </div>
@@ -421,10 +427,12 @@
         let dataLayerAridity = null;
         let dataLayerCropland = null;
         let dataLayerRivers = null;
+        let dataLayerPopulation = null;
         
         // Opacity values (0-100 for slider, converted to 0-1 for layers)
         let aridityOpacity = 100;
         let croplandOpacity = 100;
+        let populationOpacity = 100;
 
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -450,6 +458,7 @@
             // Initialize any UI state for checkboxes
             document.getElementById('chkAridity').checked = false;
             document.getElementById('chkCropland').checked = false;
+            document.getElementById('chkPopulation').checked = false;
             document.getElementById('chkRivers').checked = true;
             addRiversLayer(); // Layer direkt laden
         });
@@ -497,6 +506,9 @@
             } else if (id === 'rivers') {
                 const chk = document.getElementById('chkRivers');
                 if (chk.checked) addRiversLayer(); else removeRiversLayer();
+            } else if (id === 'population') {
+                const chk = document.getElementById('chkPopulation');
+                if (chk.checked) addPopulationLayer(); else removePopulationLayer();
             }
         }
 
@@ -510,6 +522,9 @@
             } else if (layerId === 'cropland' && dataLayerCropland) {
                 croplandOpacity = value;
                 dataLayerCropland.setOpacity(opacity);
+            } else if (layerId === 'population' && dataLayerPopulation) {
+                populationOpacity = value;
+                dataLayerPopulation.setOpacity(value / 100);
             }
         }
 
@@ -676,6 +691,81 @@
             map.removeLayer(dataLayerRivers);
             dataLayerRivers = null;
         }
+
+
+        //Load Population layer
+        async function addPopulationLayer() {
+            if (dataLayerPopulation) return;
+            try {
+                console.log('Starting to load Population layer...');
+                const response = await fetch('Data/Population.tif');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                console.log('Response received, reading as array buffer...');
+                const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+
+                //Parse georaster liest alle Daten automatisch aus Datei
+                const georaster = await parseGeoraster(arrayBuffer);
+                console.log('GeoRaster created');
+
+                dataLayerPopulation = new GeoRasterLayer({
+                    georaster: georaster,
+                    resolution: 256,
+                    opacity: populationOpacity / 100,
+                    pixelValuesToColorFn: values => {
+                        const value = values[0];
+                        if (value === undefined || value === null || value === -99999) return null;
+                        // Inverse Magma ramp: light yellow/cream at low values,
+                        // dark purple/black at high values
+                        const normalized = Math.min(Math.max(value / 100, 0), 1);
+                        const stops = [
+                            { value: 0.00, color: [252, 253, 191] }, // #fcfdbf
+                            { value: 0.125, color: [251, 182, 26] }, // #fbb61a
+                            { value: 0.25, color: [237, 105, 37] }, // #ed6925
+                            { value: 0.375, color: [207, 68, 70] }, // #cf4446
+                            { value: 0.50, color: [165, 44, 96] }, // #a52c60
+                            { value: 0.625, color: [120, 28, 109] }, // #781c6d
+                            { value: 0.75, color: [74, 12, 107] }, // #4a0c6b
+                            { value: 0.875, color: [27, 12, 65] }, // #1b0c41
+                            { value: 1.00, color: [0, 0, 4] }      // #000004
+                        ];
+
+                        if (normalized <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;
+                        if (normalized >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`;
+
+                        for (let i = 0; i < stops.length - 1; i++) {
+                            if (normalized >= stops[i].value && normalized <= stops[i + 1].value) {
+                                const t = (normalized - stops[i].value) / (stops[i + 1].value - stops[i].value);
+                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
+                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
+                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
+                                return `rgba(${r}, ${g}, ${b}, 1)`;
+                            }
+                        }
+
+                        return null;
+}
+                });
+
+                dataLayerPopulation.cache = {};
+                dataLayerPopulation.addTo(map);
+                console.log('Population layer added to map successfully');
+
+            } catch (error) {
+                console.error('Error loading Population layer:', error);
+                document.getElementById('chkPopulation').checked = false;
+                alert('Failed to load Population layer: ' + error.message);
+            }
+        }
+
+        function removePopulationLayer() {
+            if (!dataLayerPopulation) return;
+            console.log('Removing Population layer');
+            map.removeLayer(dataLayerPopulation);
+            dataLayerPopulation = null;
+            document.getElementById('sliderPopulation').value = populationOpacity;
+        }
+        
 
         // Close option panels when clicking outside
         document.addEventListener('click', function(event) {
