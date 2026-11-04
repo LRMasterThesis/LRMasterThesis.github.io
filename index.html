@@ -539,7 +539,7 @@
                 dataLayerPopulation.setOpacity(value / 100);
             } else if (layerId === 'deprivation' && dataLayerDeprivation) {
                 deprivationOpacity = value;
-                dataLayerDeprivation.setStyle({ fillOpacity: (value / 100) * 0.85 });
+                dataLayerDeprivation.setStyle({ fillOpacity: (value / 100) });
             }
         }
 
@@ -826,7 +826,7 @@
                             weight: 1,
                             opacity: 1,
                             fillColor: deprivationColor(rate),
-                            fillOpacity: deprivationOpacity / 100 * 0.85
+                            fillOpacity: deprivationOpacity / 100
                         };
                     },
                     onEachFeature: function(feature, layer) {
