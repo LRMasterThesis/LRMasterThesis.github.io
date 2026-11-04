@@ -336,6 +336,12 @@
                             <input type="range" id="sliderPopulation" min="0" max="100" value="100" class="layer-slider"
                                    oninput="updateLayerOpacity('population', this.value)">
                         </label>
+                        <label class="data-option">
+                            <input type="checkbox" id="chkDeprivation" onchange="toggleDataLayer('deprivation')">
+                            <span>Drinking Water Deprivation</span>
+                            <input type="range" id="sliderDeprivation" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('deprivation', this.value)">
+                        </label>
                     </div>
                 </div>
             </div>
@@ -428,11 +434,13 @@
         let dataLayerCropland = null;
         let dataLayerRivers = null;
         let dataLayerPopulation = null;
+        let dataLayerDeprivation = null;
         
         // Opacity values (0-100 for slider, converted to 0-1 for layers)
         let aridityOpacity = 100;
         let croplandOpacity = 100;
         let populationOpacity = 100;
+        let deprivationOpacity = 100;
 
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -460,6 +468,7 @@
             document.getElementById('chkCropland').checked = false;
             document.getElementById('chkPopulation').checked = false;
             document.getElementById('chkRivers').checked = true;
+            document.getElementById('chkDeprivation').checked = false;
             addRiversLayer(); // Layer direkt laden
         });
 
@@ -509,6 +518,9 @@
             } else if (id === 'population') {
                 const chk = document.getElementById('chkPopulation');
                 if (chk.checked) addPopulationLayer(); else removePopulationLayer();
+            } else if (id === 'deprivation') {
+                const chk = document.getElementById('chkDeprivation');
+                if (chk.checked) addDeprivationLayer(); else removeDeprivationLayer();
             }
         }
 
@@ -525,6 +537,9 @@
             } else if (layerId === 'population' && dataLayerPopulation) {
                 populationOpacity = value;
                 dataLayerPopulation.setOpacity(value / 100);
+            } else if (layerId === 'deprivation' && dataLayerDeprivation) {
+                deprivationOpacity = value;
+                dataLayerDeprivation.setStyle({ fillOpacity: (value / 100) * 0.85 });
             }
         }
 
@@ -744,7 +759,7 @@
                         }
 
                         return null;
-}
+                    }
                 });
 
                 dataLayerPopulation.cache = {};
@@ -764,6 +779,80 @@
             map.removeLayer(dataLayerPopulation);
             dataLayerPopulation = null;
             document.getElementById('sliderPopulation').value = populationOpacity;
+        }
+
+
+        //Color ramp for the drinking water deprivation rate (0-1)
+        function deprivationColor(rate) {
+            if (rate === undefined || rate === null) return '#cccccc';
+            const stops = [
+                { value: 0.0, color: [255, 255, 178] },  // low deprivation
+                { value: 0.2, color: [254, 204, 92] },
+                { value: 0.4, color: [253, 141, 60] },
+                { value: 0.6, color: [240, 59, 32] },
+                { value: 0.8, color: [189, 0, 38] },
+                { value: 1.0, color: [128, 0, 38] }       // high deprivation
+            ];
+            if (rate <= stops[0].value) return `rgb(${stops[0].color.join(',')})`;
+            if (rate >= stops[stops.length - 1].value) return `rgb(${stops[stops.length - 1].color.join(',')})`;
+            for (let i = 0; i < stops.length - 1; i++) {
+                if (rate >= stops[i].value && rate <= stops[i + 1].value) {
+                    const t = (rate - stops[i].value) / (stops[i + 1].value - stops[i].value);
+                    const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
+                    const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
+                    const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
+                    return `rgb(${r}, ${g}, ${b})`;
+                }
+            }
+            return '#cccccc';
+        }
+
+        //Load GeoJSON Deprivation layer
+        async function addDeprivationLayer() {
+            if (dataLayerDeprivation) return; // already added
+            try {
+                console.log('Starting to load Deprivation layer...');
+                const response = await fetch('Data/Deprivation_rate_in_Drinking_water.geojson');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const geojsonData = await response.json();
+                console.log('GeoJSON parsed successfully');
+
+                dataLayerDeprivation = L.geoJSON(geojsonData, {
+                    style: function(feature) {
+                        const rate = feature.properties ? feature.properties.dep_infra_impw : null;
+                        return {
+                            color: '#ffffff',
+                            weight: 1,
+                            opacity: 1,
+                            fillColor: deprivationColor(rate),
+                            fillOpacity: deprivationOpacity / 100 * 0.85
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const p = feature.properties || {};
+                        let popupContent = `<div><strong>${p.geo_name || 'Unknown county'}</strong><br>`;
+                        if (p.dep_infra_impw !== undefined && p.dep_infra_impw !== null) {
+                            popupContent += `Deprivation rate (drinking water): <strong>${(p.dep_infra_impw * 100).toFixed(1)}%</strong><br>`;
+                        }
+                        popupContent += '</div>';
+                        layer.bindPopup(popupContent);
+                    }
+                }).addTo(map);
+
+                console.log('Deprivation layer added to map successfully');
+            } catch (error) {
+                console.error('Error loading Deprivation layer:', error);
+                document.getElementById('chkDeprivation').checked = false;
+                alert('Failed to load Deprivation layer: ' + error.message);
+            }
+        }
+
+        function removeDeprivationLayer() {
+            if (!dataLayerDeprivation) return;
+            console.log('Removing Deprivation layer');
+            map.removeLayer(dataLayerDeprivation);
+            dataLayerDeprivation = null;
         }
         
 
