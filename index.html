@@ -342,6 +342,12 @@
                             <input type="range" id="sliderDeprivation" min="0" max="100" value="100" class="layer-slider"
                                    oninput="updateLayerOpacity('deprivation', this.value)">
                         </label>
+                        <label class="data-option">
+                            <input type="checkbox" id="chkSoil" onchange="toggleDataLayer('soil')">
+                            <span>Mean Soil Content</span>
+                            <input type="range" id="sliderSoil" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('soil', this.value)">
+                        </label>
                     </div>
                 </div>
             </div>
@@ -435,12 +441,14 @@
         let dataLayerRivers = null;
         let dataLayerPopulation = null;
         let dataLayerDeprivation = null;
+        let dataLayerSoil = null;
         
         // Opacity values (0-100 for slider, converted to 0-1 for layers)
         let aridityOpacity = 100;
         let croplandOpacity = 100;
         let populationOpacity = 100;
         let deprivationOpacity = 100;
+        let soilOpacity = 100;
 
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -521,6 +529,9 @@
             } else if (id === 'deprivation') {
                 const chk = document.getElementById('chkDeprivation');
                 if (chk.checked) addDeprivationLayer(); else removeDeprivationLayer();
+            } else if (id === 'soil') {
+                const chk = document.getElementById('chkSoil');
+                if (chk.checked) addSoilLayer(); else removeSoilLayer();
             }
         }
 
@@ -536,10 +547,13 @@
                 dataLayerCropland.setOpacity(opacity);
             } else if (layerId === 'population' && dataLayerPopulation) {
                 populationOpacity = value;
-                dataLayerPopulation.setOpacity(value / 100);
+                dataLayerPopulation.setOpacity(opacity);
             } else if (layerId === 'deprivation' && dataLayerDeprivation) {
                 deprivationOpacity = value;
                 dataLayerDeprivation.setStyle({ fillOpacity: (value / 100) });
+            } else if (layerId === 'soil' && dataLayerSoil) {
+                soilOpacity = value;
+                dataLayerSoil.setOpacity(opacity);
             }
         }
 
@@ -840,6 +854,76 @@
         }
         
 
+
+        // Load Mean Soil Content raster layer
+        async function addSoilLayer() {
+            if (dataLayerSoil) return; // already added
+            try {
+                console.log('Starting to load Soil layer...');
+                const response = await fetch('Data/Mean_Soil_Content.tif');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                console.log('Response received, reading as array buffer...');
+                const arrayBuffer = await response.arrayBuffer();
+                console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
+
+                const georaster = await parseGeoraster(arrayBuffer);
+                console.log('GeoRaster created (Soil)');
+
+                dataLayerSoil = new GeoRasterLayer({
+                    georaster: georaster,
+                    resolution: 256,
+                    opacity: soilOpacity / 100,
+                    pixelValuesToColorFn: values => {
+                        const value = values[0];
+                        if (value === undefined || value === null || value === -3.4028230607370965e+38) return null; // no data
+
+                        // Color stops for linear interpolation
+                        const stops = [
+                            { value: 33,  color: [255, 245, 235] },  // #fff5eb
+                            { value: 291, color: [253, 188, 133] },  // #fdbc85
+                            { value: 549, color: [233, 102, 26] },   // #e9661a
+                            { value: 807, color: [127, 39, 4] }     // #7f2704
+                        ];
+
+                        if (value <= stops[0].value) return `rgba(${stops[0].color.join(',')}, 1)`;
+                        if (value >= stops[stops.length - 1].value) return `rgba(${stops[stops.length - 1].color.join(',')}, 1)`; // values above 807 get the darkest color
+
+                        for (let i = 0; i < stops.length - 1; i++) {
+                            if (value >= stops[i].value && value <= stops[i + 1].value) {
+                                const t = (value - stops[i].value) / (stops[i + 1].value - stops[i].value);
+                                const r = Math.round(stops[i].color[0] + t * (stops[i + 1].color[0] - stops[i].color[0]));
+                                const g = Math.round(stops[i].color[1] + t * (stops[i + 1].color[1] - stops[i].color[1]));
+                                const b = Math.round(stops[i].color[2] + t * (stops[i + 1].color[2] - stops[i].color[2]));
+                                return `rgba(${r}, ${g}, ${b}, 1)`;
+                            }
+                        }
+                        return null;
+                    }
+                });
+                dataLayerSoil.cache = {};
+                dataLayerSoil.addTo(map);
+
+                console.log('Soil layer added to map successfully');
+            } catch (error) {
+                console.error('Error loading Soil layer:', error);
+                document.getElementById('chkSoil').checked = false;
+                alert('Failed to load Soil layer: ' + error.message);
+            }
+        }
+
+        function removeSoilLayer() {
+            if (!dataLayerSoil) return;
+            console.log('Removing Soil layer');
+            map.removeLayer(dataLayerSoil);
+            dataLayerSoil = null;
+            document.getElementById('sliderSoil').value = soilOpacity;
+        }
+
+
+
+
+        
         // Close option panels when clicking outside
         document.addEventListener('click', function(event) {
             const basemapSelector = document.querySelector('.basemap-selector');
