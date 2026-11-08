@@ -876,7 +876,7 @@
                     opacity: soilOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];
-                        if (value === undefined || value === null || value === -3.4028230607370965e+38) return null; // no data
+                        if (value === undefined || value === null || value === -3.4028234663852886e+38) return null; // no data
 
                         // Color stops for linear interpolation
                         const stops = [
