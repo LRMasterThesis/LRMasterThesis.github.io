@@ -860,7 +860,7 @@
             if (dataLayerSand) return; // already added
             try {
                 console.log('Starting to load Sand layer...');
-                const response = await fetch('Data/Mean_Sand_Content.tif');
+                const response = await fetch('Data/Mean_Soil_Content.tif');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                 console.log('Response received, reading as array buffer...');
