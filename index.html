@@ -343,10 +343,10 @@
                                    oninput="updateLayerOpacity('deprivation', this.value)">
                         </label>
                         <label class="data-option">
-                            <input type="checkbox" id="chkSoil" onchange="toggleDataLayer('soil')">
-                            <span>Mean Soil Content</span>
-                            <input type="range" id="sliderSoil" min="0" max="100" value="100" class="layer-slider"
-                                   oninput="updateLayerOpacity('soil', this.value)">
+                            <input type="checkbox" id="chkSand" onchange="toggleDataLayer('sand')">
+                            <span>Mean Sand Content</span>
+                            <input type="range" id="sliderSand" min="0" max="100" value="100" class="layer-slider"
+                                   oninput="updateLayerOpacity('sand', this.value)">
                         </label>
                     </div>
                 </div>
@@ -441,14 +441,14 @@
         let dataLayerRivers = null;
         let dataLayerPopulation = null;
         let dataLayerDeprivation = null;
-        let dataLayerSoil = null;
+        let dataLayerSand = null;
         
         // Opacity values (0-100 for slider, converted to 0-1 for layers)
         let aridityOpacity = 100;
         let croplandOpacity = 100;
         let populationOpacity = 100;
         let deprivationOpacity = 100;
-        let soilOpacity = 100;
+        let sandOpacity = 100;
 
         // Initialize the map when the page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -529,9 +529,9 @@
             } else if (id === 'deprivation') {
                 const chk = document.getElementById('chkDeprivation');
                 if (chk.checked) addDeprivationLayer(); else removeDeprivationLayer();
-            } else if (id === 'soil') {
-                const chk = document.getElementById('chkSoil');
-                if (chk.checked) addSoilLayer(); else removeSoilLayer();
+            } else if (id === 'sand') {
+                const chk = document.getElementById('chkSand');
+                if (chk.checked) addSandLayer(); else removeSandLayer();
             }
         }
 
@@ -551,9 +551,9 @@
             } else if (layerId === 'deprivation' && dataLayerDeprivation) {
                 deprivationOpacity = value;
                 dataLayerDeprivation.setStyle({ fillOpacity: (value / 100) });
-            } else if (layerId === 'soil' && dataLayerSoil) {
-                soilOpacity = value;
-                dataLayerSoil.setOpacity(opacity);
+            } else if (layerId === 'sand' && dataLayerSand) {
+                sandOpacity = value;
+                dataLayerSand.setOpacity(opacity);
             }
         }
 
@@ -855,12 +855,12 @@
         
 
 
-        // Load Mean Soil Content raster layer
-        async function addSoilLayer() {
-            if (dataLayerSoil) return; // already added
+        // Load Mean Sand Content raster layer
+        async function addSandLayer() {
+            if (dataLayerSand) return; // already added
             try {
-                console.log('Starting to load Soil layer...');
-                const response = await fetch('Data/Mean_Soil_Content.tif');
+                console.log('Starting to load Sand layer...');
+                const response = await fetch('Data/Mean_Sand_Content.tif');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                 console.log('Response received, reading as array buffer...');
@@ -868,12 +868,12 @@
                 console.log(`ArrayBuffer received: ${arrayBuffer.byteLength} bytes`);
 
                 const georaster = await parseGeoraster(arrayBuffer);
-                console.log('GeoRaster created (Soil)');
+                console.log('GeoRaster created (Sand)');
 
-                dataLayerSoil = new GeoRasterLayer({
+                dataLayerSand = new GeoRasterLayer({
                     georaster: georaster,
                     resolution: 256,
-                    opacity: soilOpacity / 100,
+                    opacity: sandOpacity / 100,
                     pixelValuesToColorFn: values => {
                         const value = values[0];
                         if (value === undefined || value === null || value === -3.4028234663852886e+38) return null; // no data
@@ -901,23 +901,23 @@
                         return null;
                     }
                 });
-                dataLayerSoil.cache = {};
-                dataLayerSoil.addTo(map);
+                dataLayerSand.cache = {};
+                dataLayerSand.addTo(map);
 
-                console.log('Soil layer added to map successfully');
+                console.log('Sand layer added to map successfully');
             } catch (error) {
-                console.error('Error loading Soil layer:', error);
-                document.getElementById('chkSoil').checked = false;
-                alert('Failed to load Soil layer: ' + error.message);
+                console.error('Error loading Sand layer:', error);
+                document.getElementById('chkSand').checked = false;
+                alert('Failed to load Sand layer: ' + error.message);
             }
         }
 
-        function removeSoilLayer() {
-            if (!dataLayerSoil) return;
-            console.log('Removing Soil layer');
-            map.removeLayer(dataLayerSoil);
-            dataLayerSoil = null;
-            document.getElementById('sliderSoil').value = soilOpacity;
+        function removeSandLayer() {
+            if (!dataLayerSand) return;
+            console.log('Removing Sand layer');
+            map.removeLayer(dataLayerSand);
+            dataLayerSand = null;
+            document.getElementById('sliderSand').value = sandOpacity;
         }
 
 
